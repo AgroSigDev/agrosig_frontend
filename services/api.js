@@ -200,3 +200,34 @@ export function checkAuthStatus() {
     }
   };
 }
+
+// services/api.js
+
+// Función para obtener los datos del usuario actual
+export const getCurrentUser = async () => {
+  try {
+    const tokens = getAuthTokens();
+    
+    if (!tokens.accessToken) {
+      throw new Error('No hay token de acceso');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tokens.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener datos del usuario');
+    }
+
+    const userData = await response.json();
+    return userData;
+  } catch (error) {
+    console.error('Error obteniendo usuario actual:', error);
+    throw error;
+  }
+};
