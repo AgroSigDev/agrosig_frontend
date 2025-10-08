@@ -219,12 +219,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="mt-8 text-center border-t border-gray-100 pt-6">
-          <p className="text-xs text-gray-500">
-            © 2024 AGROSIG. Todos los derechos reservados.
-          </p>
-        </div>
+       
       </div>
     </div>
   );
