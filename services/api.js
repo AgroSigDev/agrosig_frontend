@@ -41,17 +41,17 @@ export function isAuthenticated() {
 export async function login(email, password) {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ 
-      email: email.trim(), 
-      password: password.trim() 
+    body: JSON.stringify({
+      email: email.trim(),
+      password: password.trim()
     })
   });
 
   const responseText = await response.text();
-  
+
   if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
     throw new Error("Error del servidor: respuesta HTML inesperada");
   }
@@ -64,7 +64,37 @@ export async function login(email, password) {
   }
 
   if (!response.ok) {
-    throw new Error(data.message || `Error ${response.status} en el login`);
+    // TRADUCIR MENSAJES DE ERROR AL ESPAÑOL
+    const errorMessage = data.message || `Error ${response.status} en el login`;
+    let translatedMessage = errorMessage;
+
+    // Traducir mensajes comunes de error
+    if (errorMessage.includes('Error logging in user') ||
+      errorMessage.includes('Invalid credentials') ||
+      errorMessage.includes('Credenciales inválidas')) {
+      translatedMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+    } else if (errorMessage.includes('User not found') ||
+      errorMessage.includes('Usuario no encontrado')) {
+      translatedMessage = "Usuario no encontrado.";
+    } else if (errorMessage.includes('Email not verified') ||
+      errorMessage.includes('Email no verificado')) {
+      translatedMessage = "Email no verificado. Por favor, verifica tu cuenta.";
+    } else if (errorMessage.includes('Account disabled') ||
+      errorMessage.includes('Cuenta deshabilitada')) {
+      translatedMessage = "Tu cuenta está deshabilitada. Contacta al administrador.";
+    } else if (errorMessage.includes('Too many attempts')) {
+      translatedMessage = "Demasiados intentos fallidos. Intenta más tarde.";
+    } else if (response.status === 401) {
+      translatedMessage = "No autorizado. Verifica tus credenciales.";
+    } else if (response.status === 403) {
+      translatedMessage = "Acceso denegado. No tienes permisos para acceder.";
+    } else if (response.status === 404) {
+      translatedMessage = "Servicio no encontrado.";
+    } else if (response.status >= 500) {
+      translatedMessage = "Error del servidor. Por favor, intenta más tarde.";
+    }
+
+    throw new Error(translatedMessage);
   }
 
   if (!data.data || !data.data.token) {
@@ -81,9 +111,9 @@ export async function login(email, password) {
 // ✅ Función para refrescar el token usando el endpoint /auth/refresh
 export async function refreshAuthToken() {
   const refreshToken = getRefreshToken();
-  
+
   if (!refreshToken) {
-    throw new Error("No hay refresh token disponible");
+    throw new Error("No hay token de refresco disponible");
   }
 
   try {
@@ -99,7 +129,7 @@ export async function refreshAuthToken() {
     console.log("🔄 Respuesta refresh:", responseText);
 
     if (!response.ok) {
-      throw new Error("Error refrescando token");
+      throw new Error("Error al refrescar el token de acceso");
     }
 
     let data;
@@ -127,7 +157,7 @@ export async function refreshAuthToken() {
 // ✅ Fetch inteligente que maneja refresh automático
 export async function authenticatedFetch(url, options = {}) {
   let token = getAuthToken();
-  
+
   const config = {
     ...options,
     headers: {
@@ -142,10 +172,10 @@ export async function authenticatedFetch(url, options = {}) {
   // Si el token expiró (401), intentar refrescar
   if (response.status === 401) {
     console.log("🔄 Token expirado, intentando refrescar...");
-    
+
     try {
       const newToken = await refreshAuthToken();
-      
+
       // Reintentar la petición con el nuevo token
       config.headers.Authorization = `Bearer ${newToken}`;
       response = await fetch(url, config);
@@ -165,7 +195,7 @@ export async function authenticatedFetch(url, options = {}) {
 // ✅ Función getUsers usando el fetch autenticado
 export async function getUsers() {
   const response = await authenticatedFetch(`${API_URL}/users`);
-  
+
   const responseText = await response.text();
 
   if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
@@ -180,7 +210,19 @@ export async function getUsers() {
   }
 
   if (!response.ok) {
-    throw new Error(data.message || `Error ${response.status} al obtener usuarios`);
+    // Traducir mensajes de error para getUsers
+    const errorMessage = data.message || `Error ${response.status} al obtener usuarios`;
+    let translatedMessage = errorMessage;
+
+    if (response.status === 401) {
+      translatedMessage = "No autorizado para ver usuarios";
+    } else if (response.status === 403) {
+      translatedMessage = "No tienes permisos para acceder a los usuarios";
+    } else if (response.status === 404) {
+      translatedMessage = "Endpoint de usuarios no encontrado";
+    }
+
+    throw new Error(translatedMessage);
   }
 
   return data.data || data;
@@ -190,7 +232,7 @@ export async function getUsers() {
 export function checkAuthStatus() {
   const token = getAuthToken();
   const refreshToken = getRefreshToken();
-  
+
   return {
     isAuthenticated: !!token,
     hasRefreshToken: !!refreshToken,
@@ -201,21 +243,19 @@ export function checkAuthStatus() {
   };
 }
 
-// services/api.js
-
-// Función para obtener los datos del usuario actual
+// ✅ Función para obtener los datos del usuario actual
 export const getCurrentUser = async () => {
   try {
-    const tokens = getAuthTokens();
-    
-    if (!tokens.accessToken) {
-      throw new Error('No hay token de acceso');
+    const token = getAuthToken();
+
+    if (!token) {
+      throw new Error('No hay token de acceso disponible');
     }
 
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
+    const response = await fetch(`${API_URL}/users/me`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${tokens.accessToken}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
@@ -230,4 +270,55 @@ export const getCurrentUser = async () => {
     console.error('Error obteniendo usuario actual:', error);
     throw error;
   }
+};
+
+// ✅ Función para cerrar sesión
+export const logout = () => {
+  removeAuthTokens();
+  console.log("🔓 Sesión cerrada - tokens eliminados");
+};
+
+// ✅ Función para registrar nuevo usuario
+export const register = async (userData) => {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(userData)
+  });
+
+  const responseText = await response.text();
+
+  if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
+    throw new Error("Error del servidor: respuesta HTML inesperada");
+  }
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (parseError) {
+    throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
+  }
+
+  if (!response.ok) {
+    // Traducir mensajes de error para registro
+    const errorMessage = data.message || `Error ${response.status} en el registro`;
+    let translatedMessage = errorMessage;
+
+    if (errorMessage.includes('Email already exists') ||
+      errorMessage.includes('Usuario ya existe')) {
+      translatedMessage = "El email ya está registrado.";
+    } else if (errorMessage.includes('Weak password')) {
+      translatedMessage = "La contraseña es demasiado débil.";
+    } else if (errorMessage.includes('Invalid email')) {
+      translatedMessage = "El formato del email no es válido.";
+    } else if (response.status === 400) {
+      translatedMessage = "Datos de registro incompletos o inválidos.";
+    }
+
+    throw new Error(translatedMessage);
+  }
+
+  return data.data || data;
 };
