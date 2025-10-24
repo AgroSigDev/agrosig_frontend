@@ -1,12 +1,23 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+// services/api.js - ACTUALIZADO PARA MANEJAR FORMData CON IMÁGENES
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
+// Configuración para desarrollo con certificados auto-firmados
+const fetchConfig = {
+  ...(typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && {
+    mode: 'cors',
+    credentials: 'include'
+  })
+};
+
 // Guardar ambos tokens
 export function setAuthTokens(accessToken, refreshToken) {
-  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    if (refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
   }
 }
 
@@ -28,8 +39,10 @@ export function getRefreshToken() {
 
 // Eliminar ambos tokens (logout)
 export function removeAuthTokens() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
 }
 
 // Verificar si está autenticado
@@ -37,7 +50,7 @@ export function isAuthenticated() {
   return !!getAuthToken();
 }
 
-// Login - guarda ambos tokens
+// ✅ LOGIN - ACTUALIZADO para tu estructura de respuesta
 export async function login(email, password) {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -47,7 +60,8 @@ export async function login(email, password) {
     body: JSON.stringify({
       email: email.trim(),
       password: password.trim()
-    })
+    }),
+    ...fetchConfig
   });
 
   const responseText = await response.text();
@@ -64,39 +78,31 @@ export async function login(email, password) {
   }
 
   if (!response.ok) {
-    // TRADUCIR MENSAJES DE ERROR AL ESPAÑOL
+    // TRADUCIR MENSAJES DE ERROR AL ESPAÑOL - ACTUALIZADO para tus mensajes
     const errorMessage = data.message || `Error ${response.status} en el login`;
     let translatedMessage = errorMessage;
 
-    // Traducir mensajes comunes de error
-    if (errorMessage.includes('Error logging in user') ||
-      errorMessage.includes('Invalid credentials') ||
-      errorMessage.includes('Credenciales inválidas')) {
-      translatedMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
-    } else if (errorMessage.includes('User not found') ||
-      errorMessage.includes('Usuario no encontrado')) {
+    // Traducir mensajes específicos de tu backend
+    if (errorMessage.includes('User not found')) {
       translatedMessage = "Usuario no encontrado.";
-    } else if (errorMessage.includes('Email not verified') ||
-      errorMessage.includes('Email no verificado')) {
-      translatedMessage = "Email no verificado. Por favor, verifica tu cuenta.";
-    } else if (errorMessage.includes('Account disabled') ||
-      errorMessage.includes('Cuenta deshabilitada')) {
-      translatedMessage = "Tu cuenta está deshabilitada. Contacta al administrador.";
-    } else if (errorMessage.includes('Too many attempts')) {
-      translatedMessage = "Demasiados intentos fallidos. Intenta más tarde.";
+    } else if (errorMessage.includes('The email is already linked to this Google account')) {
+      translatedMessage = "El email está vinculado a una cuenta de Google.";
+    } else if (errorMessage.includes('User is not active')) {
+      translatedMessage = "Usuario inactivo. Contacta al administrador.";
+    } else if (errorMessage.includes('Invalid password')) {
+      translatedMessage = "Contraseña incorrecta.";
+    } else if (errorMessage.includes('Error logging in user')) {
+      translatedMessage = "Error al iniciar sesión. Verifica tus credenciales.";
     } else if (response.status === 401) {
       translatedMessage = "No autorizado. Verifica tus credenciales.";
-    } else if (response.status === 403) {
-      translatedMessage = "Acceso denegado. No tienes permisos para acceder.";
-    } else if (response.status === 404) {
-      translatedMessage = "Servicio no encontrado.";
-    } else if (response.status >= 500) {
+    } else if (response.status === 500) {
       translatedMessage = "Error del servidor. Por favor, intenta más tarde.";
     }
 
     throw new Error(translatedMessage);
   }
 
+  // ✅ ACTUALIZADO: Tu backend devuelve { success, message, data: { user, token, refreshToken } }
   if (!data.data || !data.data.token) {
     throw new Error("Estructura de respuesta inesperada del servidor");
   }
@@ -108,7 +114,109 @@ export async function login(email, password) {
   return data.data;
 }
 
-// ✅ Función para refrescar el token usando el endpoint /auth/refresh
+// ✅ REGISTER - VERSIÓN PARA JSON (sin imagen)
+export const register = async (userData) => {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(userData),
+    ...fetchConfig
+  });
+
+  const responseText = await response.text();
+
+  if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
+    throw new Error("Error del servidor: respuesta HTML inesperada");
+  }
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (parseError) {
+    throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
+  }
+
+  if (!response.ok) {
+    // ✅ ACTUALIZADO: Traducir mensajes de error específicos de tu backend
+    const errorMessage = data.message || `Error ${response.status} en el registro`;
+    let translatedMessage = errorMessage;
+
+    if (errorMessage.includes('User already exists') ||
+      errorMessage.includes('Email already exists')) {
+      translatedMessage = "El email ya está registrado.";
+    } else if (errorMessage.includes('Weak password') ||
+      errorMessage.includes('password length')) {
+      translatedMessage = "La contraseña debe tener al menos 6 caracteres.";
+    } else if (errorMessage.includes('Invalid email') ||
+      errorMessage.includes('email format')) {
+      translatedMessage = "El formato del email no es válido.";
+    } else if (response.status === 400) {
+      translatedMessage = "Datos de registro incompletos o inválidos.";
+    } else if (response.status === 500) {
+      translatedMessage = "Error del servidor al registrar usuario.";
+    }
+
+    throw new Error(translatedMessage);
+  }
+
+  return data;
+};
+
+// ✅ REGISTER WITH IMAGE - VERSIÓN PARA FormData (con imagen)
+export const registerWithImage = async (formData) => {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    body: formData,
+    // No incluir Content-Type header, el navegador lo establecerá automáticamente con el boundary
+    ...fetchConfig
+  });
+
+  const responseText = await response.text();
+
+  if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
+    throw new Error("Error del servidor: respuesta HTML inesperada");
+  }
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (parseError) {
+    throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
+  }
+
+  if (!response.ok) {
+    const errorMessage = data.message || `Error ${response.status} en el registro`;
+    let translatedMessage = errorMessage;
+
+    if (errorMessage.includes('User already exists') ||
+      errorMessage.includes('Email already exists')) {
+      translatedMessage = "El email ya está registrado.";
+    } else if (errorMessage.includes('Weak password') ||
+      errorMessage.includes('password length')) {
+      translatedMessage = "La contraseña debe tener al menos 6 caracteres.";
+    } else if (errorMessage.includes('Invalid email') ||
+      errorMessage.includes('email format')) {
+      translatedMessage = "El formato del email no es válido.";
+    } else if (errorMessage.includes('Invalid image') ||
+      errorMessage.includes('image format')) {
+      translatedMessage = "Formato de imagen no válido.";
+    } else if (errorMessage.includes('Image too large')) {
+      translatedMessage = "La imagen es demasiado grande.";
+    } else if (response.status === 400) {
+      translatedMessage = "Datos de registro incompletos o inválidos.";
+    } else if (response.status === 500) {
+      translatedMessage = "Error del servidor al registrar usuario.";
+    }
+
+    throw new Error(translatedMessage);
+  }
+
+  return data;
+};
+
+// ✅ REFRESH TOKEN - ACTUALIZADO
 export async function refreshAuthToken() {
   const refreshToken = getRefreshToken();
 
@@ -122,12 +230,17 @@ export async function refreshAuthToken() {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${refreshToken}`
-      }
+      },
+      ...fetchConfig
     });
 
-    const responseText = await response.text();
-    console.log("🔄 Respuesta refresh:", responseText);
+    // Si no existe el endpoint, manejamos el error
+    if (response.status === 404) {
+      throw new Error("Endpoint de refresh no disponible");
+    }
 
+    const responseText = await response.text();
+    
     if (!response.ok) {
       throw new Error("Error al refrescar el token de acceso");
     }
@@ -139,33 +252,37 @@ export async function refreshAuthToken() {
       throw new Error("Respuesta inválida al refrescar token");
     }
 
+    // ✅ ACTUALIZADO: Asumiendo la misma estructura que login
     if (data.data && data.data.token) {
-      // Guardar el nuevo access token
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.token);
+      setAuthTokens(data.data.token, refreshToken);
       console.log("✅ Token refrescado exitosamente");
       return data.data.token;
     } else {
       throw new Error("Estructura de respuesta inválida al refrescar token");
     }
   } catch (error) {
-    // Si el refresh falla, hacer logout
     removeAuthTokens();
     throw new Error("Sesión expirada. Por favor, inicia sesión nuevamente.");
   }
 }
 
-// ✅ Fetch inteligente que maneja refresh automático
+// ✅ AUTHENTICATED FETCH - ACTUALIZADO
 export async function authenticatedFetch(url, options = {}) {
   let token = getAuthToken();
 
   const config = {
     ...options,
+    ...fetchConfig,
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
-      "Authorization": `Bearer ${token}`
     }
   };
+
+  // Solo agregar Authorization si existe el token
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
   let response = await fetch(url, config);
 
@@ -192,7 +309,24 @@ export async function authenticatedFetch(url, options = {}) {
   return response;
 }
 
-// ✅ Función getUsers usando el fetch autenticado
+// ✅ GET CURRENT USER - ACTUALIZADO para tu endpoint
+export const getCurrentUser = async () => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/users/get-user/me`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener datos del usuario');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error obteniendo usuario actual:', error);
+    throw error;
+  }
+};
+
+// ✅ GET USERS - ACTUALIZADO
 export async function getUsers() {
   const response = await authenticatedFetch(`${API_URL}/users`);
 
@@ -210,19 +344,8 @@ export async function getUsers() {
   }
 
   if (!response.ok) {
-    // Traducir mensajes de error para getUsers
     const errorMessage = data.message || `Error ${response.status} al obtener usuarios`;
-    let translatedMessage = errorMessage;
-
-    if (response.status === 401) {
-      translatedMessage = "No autorizado para ver usuarios";
-    } else if (response.status === 403) {
-      translatedMessage = "No tienes permisos para acceder a los usuarios";
-    } else if (response.status === 404) {
-      translatedMessage = "Endpoint de usuarios no encontrado";
-    }
-
-    throw new Error(translatedMessage);
+    throw new Error(errorMessage);
   }
 
   return data.data || data;
@@ -243,82 +366,120 @@ export function checkAuthStatus() {
   };
 }
 
-// ✅ Función para obtener los datos del usuario actual
-export const getCurrentUser = async () => {
-  try {
-    const token = getAuthToken();
-
-    if (!token) {
-      throw new Error('No hay token de acceso disponible');
-    }
-
-    const response = await fetch(`${API_URL}/users/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Error al obtener datos del usuario');
-    }
-
-    const userData = await response.json();
-    return userData;
-  } catch (error) {
-    console.error('Error obteniendo usuario actual:', error);
-    throw error;
-  }
-};
-
 // ✅ Función para cerrar sesión
 export const logout = () => {
   removeAuthTokens();
   console.log("🔓 Sesión cerrada - tokens eliminados");
 };
 
-// ✅ Función para registrar nuevo usuario
-export const register = async (userData) => {
-  const response = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(userData)
-  });
-
-  const responseText = await response.text();
-
-  if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
-    throw new Error("Error del servidor: respuesta HTML inesperada");
-  }
-
-  let data;
+// ✅ Funciones para comentarios
+export const getComments = async () => {
   try {
-    data = JSON.parse(responseText);
-  } catch (parseError) {
-    throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
-  }
+    const response = await authenticatedFetch(`${API_URL}/comment/comments`);
 
-  if (!response.ok) {
-    // Traducir mensajes de error para registro
-    const errorMessage = data.message || `Error ${response.status} en el registro`;
-    let translatedMessage = errorMessage;
-
-    if (errorMessage.includes('Email already exists') ||
-      errorMessage.includes('Usuario ya existe')) {
-      translatedMessage = "El email ya está registrado.";
-    } else if (errorMessage.includes('Weak password')) {
-      translatedMessage = "La contraseña es demasiado débil.";
-    } else if (errorMessage.includes('Invalid email')) {
-      translatedMessage = "El formato del email no es válido.";
-    } else if (response.status === 400) {
-      translatedMessage = "Datos de registro incompletos o inválidos.";
+    if (!response.ok) {
+      throw new Error('Error al obtener comentarios');
     }
 
-    throw new Error(translatedMessage);
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error obteniendo comentarios:', error);
+    throw error;
   }
+};
 
-  return data.data || data;
+export const createComment = async (message) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/comment/register`, {
+      method: "POST",
+      body: JSON.stringify({ message })
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al crear comentario');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error creando comentario:', error);
+    throw error;
+  }
+};
+
+export const updateComment = async (commentId, message) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/comment/update/${commentId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ message })
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al actualizar comentario');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error actualizando comentario:', error);
+    throw error;
+  }
+};
+
+export const deleteComment = async (commentId) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/comment/delete/${commentId}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al eliminar comentario');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error eliminando comentario:', error);
+    throw error;
+  }
+};
+
+// ✅ Función para actualizar imagen de perfil
+export const updateProfileImage = async (userId, imageFile) => {
+  try {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const response = await fetch(`${API_URL}/users/image/${userId}`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${getAuthToken()}`
+      },
+      body: formData,
+      ...fetchConfig
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al actualizar imagen de perfil');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error actualizando imagen de perfil:', error);
+    throw error;
+  }
+};
+
+// ✅ Función para obtener imagen de perfil
+export const getProfileImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  
+  // Si la imagen ya es una URL completa
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // Si es una ruta relativa, construir la URL completa
+  return `${API_URL}/images/${imagePath}`;
 };
