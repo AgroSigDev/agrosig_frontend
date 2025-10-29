@@ -106,7 +106,7 @@ export default function DashboardPage() {
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-            {/* contenido de la app - MODIFICADO: Menos margen inferior */}
+            {/* contenido de la app */}
             <div className="flex-1 text-center lg:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4 leading-tight">
                 Tu campo en
@@ -136,7 +136,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* marco de la imagen - MODIFICADO: Tamaño ajustado */}
+            {/* marco de la imagen */}
             <div className="flex-1 flex justify-center lg:justify-end mt-8 lg:mt-0">
               <div className="relative">
                 <div className="relative w-64 h-[560px] lg:w-72 lg:h-[600px]">

@@ -1,4 +1,4 @@
-// services/api.js - ACTUALIZADO PARA MANEJAR FORMData CON IMÁGENES
+// services/api.js - CORREGIDO PARA USAR USER_ID DEL TOKEN
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -49,6 +49,31 @@ export function removeAuthTokens() {
 export function isAuthenticated() {
   return !!getAuthToken();
 }
+
+// Función de debug para verificar el token
+export const debugAuthToken = () => {
+  const token = getAuthToken();
+  if (!token) {
+    console.log("❌ No hay token disponible");
+    return null;
+  }
+
+  try {
+    const parts = token.split('.');
+    console.log("🔍 [DEBUG] Token tiene", parts.length, "partes");
+    
+    const payload = JSON.parse(atob(parts[1]));
+    console.log("🔍 [DEBUG] Contenido del token JWT:", payload);
+    console.log("🔍 [DEBUG] user_id:", payload.user_id, "Tipo:", typeof payload.user_id);
+    console.log("🔍 [DEBUG] role_id:", payload.role_id, "Tipo:", typeof payload.role_id);
+    console.log("🔍 [DEBUG] Todos los campos:", Object.keys(payload));
+    
+    return payload;
+  } catch (error) {
+    console.error("❌ Error decodificando token:", error);
+    return null;
+  }
+};
 
 // ✅ LOGIN - ACTUALIZADO para tu estructura de respuesta
 export async function login(email, password) {
@@ -309,13 +334,31 @@ export async function authenticatedFetch(url, options = {}) {
   return response;
 }
 
-// ✅ GET CURRENT USER - ACTUALIZADO para tu endpoint
+// ✅ GET CURRENT USER - CORREGIDO: Usar user_id del token
 export const getCurrentUser = async () => {
   try {
-    const response = await authenticatedFetch(`${API_URL}/users/get-user/me`);
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No hay token de autenticación');
+    }
+
+    // Decodificar el token para obtener el user_id
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.user_id;
+
+    if (!userId) {
+      console.error('❌ [DEBUG] No se encontró user_id en el token. Payload completo:', payload);
+      throw new Error('No se pudo obtener el ID del usuario del token');
+    }
+
+    console.log("🔍 [DEBUG] User ID del token:", userId, "Tipo:", typeof userId);
+
+    // ✅ Usar el endpoint existente /users/get-user/:id con el user_id real
+    const response = await authenticatedFetch(`${API_URL}/users/get-user/${userId}`);
 
     if (!response.ok) {
-      throw new Error('Error al obtener datos del usuario');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al obtener datos del usuario');
     }
 
     const data = await response.json();
