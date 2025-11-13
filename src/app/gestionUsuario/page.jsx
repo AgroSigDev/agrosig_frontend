@@ -5,6 +5,13 @@ import {
   removeAuthTokens,
   checkAuthStatus,
   getCurrentUser,
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateUserStatus,
+  updateUserRole,
+  getRoleName
 } from "../../../services/api";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
@@ -49,54 +56,6 @@ export default function GestionUsuarioPage() {
     department: ''
   });
 
-  // Datos mock iniciales
-  const usuariosIniciales = [
-    {
-      id: 1,
-      name: 'Ana García',
-      email: 'ana@agrosig.com',
-      role: 'Administrador',
-      status: 'Activo',
-      joinDate: '2023-01-15',
-      phone: '+34 612 345 678',
-      department: 'Dirección',
-      profileImage: null
-    },
-    {
-      id: 2,
-      name: 'Carlos López',
-      email: 'carlos@agrosig.com',
-      role: 'Técnico',
-      status: 'Activo',
-      joinDate: '2023-03-22',
-      phone: '+34 623 456 789',
-      department: 'Campo',
-      profileImage: null
-    },
-    {
-      id: 3,
-      name: 'María Rodríguez',
-      email: 'maria@agrosig.com',
-      role: 'Consultor',
-      status: 'Inactivo',
-      joinDate: '2023-05-10',
-      phone: '+34 634 567 890',
-      department: 'Comercial',
-      profileImage: null
-    },
-    {
-      id: 4,
-      name: 'Pedro Martínez',
-      email: 'pedro@agrosig.com',
-      role: 'Usuario',
-      status: 'Activo',
-      joinDate: '2023-07-18',
-      phone: '+34 645 678 901',
-      department: 'Operaciones',
-      profileImage: null
-    }
-  ];
-
   useEffect(() => {
     setIsClient(true);
     initializePage();
@@ -119,11 +78,11 @@ export default function GestionUsuarioPage() {
       const currentUser = await getCurrentUser();
 
       setUserData({
-        name: currentUser.first_name || "Administrador AGROSIG",
+        name: `${currentUser.first_name || ''} ${currentUser.paternal_surname || ''}`.trim(),
         email: currentUser.email || "admin@agrosig.com",
-        role: "Administrador",
+        role: getRoleName(currentUser.role_id),
         userId: currentUser.user_id,
-        profileImage: currentUser.profile_image || currentUser.avatar_url || null
+        profileImage: currentUser.image_user ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${currentUser.image_user}` : null
       });
 
       // Cargar usuarios 
@@ -139,14 +98,28 @@ export default function GestionUsuarioPage() {
   const cargarUsuarios = async () => {
     try {
       setLoading(true);
-      // Simular carga de API
-      setTimeout(() => {
-        setUsuarios(usuariosIniciales);
-        setLoading(false);
-      }, 1000);
+      const usuariosData = await getUsers();
+      
+      // Transformar los datos del backend al formato que espera tu frontend
+      const usuariosTransformados = usuariosData.map(usuario => ({
+        id: usuario.user_id,
+        name: `${usuario.first_name || ''} ${usuario.paternal_surname || ''} ${usuario.maternal_surname || ''}`.trim(),
+        email: usuario.email,
+        role: getRoleName(usuario.role_id),
+        role_id: usuario.role_id,
+        status: usuario.is_active ? 'Activo' : 'Inactivo',
+        joinDate: new Date(usuario.created_at).toISOString().split('T')[0],
+        phone: usuario.phone || '',
+        department: usuario.department || '',
+        profileImage: usuario.image_user ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${usuario.image_user}` : null,
+        is_active: usuario.is_active
+      }));
+      
+      setUsuarios(usuariosTransformados);
     } catch (error) {
       console.error('Error cargando usuarios:', error);
       notificationService.showErrorNotification('Error al cargar usuarios: ' + error.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -155,7 +128,7 @@ export default function GestionUsuarioPage() {
   const filteredUsers = usuarios.filter(usuario => {
     const matchesSearch = usuario.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          usuario.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         usuario.department.toLowerCase().includes(searchTerm.toLowerCase());
+                         (usuario.department && usuario.department.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesRole = selectedRole === 'Todos' || usuario.role === selectedRole;
     const matchesStatus = selectedStatus === 'Todos' || usuario.status === selectedStatus;
     
@@ -175,14 +148,30 @@ export default function GestionUsuarioPage() {
     try {
       setSending(true);
       
-      const nuevoUsuario = {
-        id: usuarios.length + 1,
+      // Crear usuario en el backend - TODOS se crean como "Usuario" (role_id: 2)
+      const userToCreate = {
         ...formData,
-        joinDate: new Date().toISOString().split('T')[0],
-        profileImage: null
+        role: 'Usuario' // Forzar rol de usuario para nuevos registros
       };
       
-      setUsuarios(prev => [...prev, nuevoUsuario]);
+      const nuevoUsuario = await createUser(userToCreate);
+      
+      // Actualizar la lista local
+      const usuarioTransformado = {
+        id: nuevoUsuario.user_id || nuevoUsuario.id,
+        name: formData.name,
+        email: formData.email,
+        role: 'Usuario',
+        role_id: 2,
+        status: 'Activo',
+        joinDate: new Date().toISOString().split('T')[0],
+        phone: formData.phone,
+        department: formData.department,
+        profileImage: null,
+        is_active: true
+      };
+      
+      setUsuarios(prev => [...prev, usuarioTransformado]);
       setFormData({ 
         name: '', 
         email: '', 
@@ -193,7 +182,7 @@ export default function GestionUsuarioPage() {
       });
       setShowAddUser(false);
       
-      notificationService.showSuccessNotification('¡Usuario agregado correctamente!');
+      notificationService.showSuccessNotification('¡Usuario agregado correctamente! Se ha enviado una contraseña temporal.');
     } catch (error) {
       console.error('Error agregando usuario:', error);
       notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
@@ -219,9 +208,27 @@ export default function GestionUsuarioPage() {
     try {
       setSending(true);
       
+      // Actualizar datos básicos del usuario
+      await updateUser(editandoUsuario.id, formData);
+      
+      // Si cambió el rol, actualizarlo también
+      if (formData.role !== editandoUsuario.role) {
+        const newRoleId = formData.role === 'Administrador' ? 1 : 2;
+        await updateUserRole(editandoUsuario.id, newRoleId);
+      }
+      
+      // Actualizar la lista local
       setUsuarios(prev => prev.map(usuario => 
         usuario.id === editandoUsuario.id 
-          ? { ...usuario, ...formData }
+          ? { 
+              ...usuario, 
+              name: formData.name,
+              email: formData.email,
+              role: formData.role,
+              role_id: formData.role === 'Administrador' ? 1 : 2,
+              phone: formData.phone,
+              department: formData.department
+            }
           : usuario
       ));
       
@@ -246,15 +253,45 @@ export default function GestionUsuarioPage() {
 
   const eliminarUsuario = async (usuarioId) => {
     try {
+      // No permitir eliminar el propio usuario
+      if (usuarioId === userData?.userId) {
+        notificationService.showErrorNotification('No puedes eliminar tu propio usuario');
+        return;
+      }
+
       const confirmed = await notificationService.showDeleteConfirmation();
 
       if (confirmed) {
+        await deleteUser(usuarioId);
         setUsuarios(prev => prev.filter(usuario => usuario.id !== usuarioId));
         notificationService.showSuccessNotification('Usuario eliminado correctamente');
       }
     } catch (error) {
       console.error('Error eliminando usuario:', error);
       notificationService.showErrorNotification('Error al eliminar usuario: ' + error.message);
+    }
+  };
+
+  const cambiarEstadoUsuario = async (usuarioId, nuevoEstado) => {
+    try {
+      // No permitir desactivar el propio usuario
+      if (usuarioId === userData?.userId && nuevoEstado === 'Inactivo') {
+        notificationService.showErrorNotification('No puedes desactivar tu propio usuario');
+        return;
+      }
+
+      await updateUserStatus(usuarioId, nuevoEstado === 'Activo');
+      
+      setUsuarios(prev => prev.map(usuario => 
+        usuario.id === usuarioId 
+          ? { ...usuario, status: nuevoEstado, is_active: nuevoEstado === 'Activo' }
+          : usuario
+      ));
+      
+      notificationService.showSuccessNotification(`Usuario ${nuevoEstado === 'Activo' ? 'activado' : 'desactivado'} correctamente`);
+    } catch (error) {
+      console.error('Error cambiando estado del usuario:', error);
+      notificationService.showErrorNotification('Error al cambiar estado del usuario: ' + error.message);
     }
   };
 
@@ -361,9 +398,9 @@ export default function GestionUsuarioPage() {
               </p>
             </div>
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-              <h3 className="text-sm font-semibold text-orange-800 mb-1">Técnicos</h3>
+              <h3 className="text-sm font-semibold text-orange-800 mb-1">Usuarios Normales</h3>
               <p className="text-2xl font-bold text-orange-900">
-                {usuarios.filter(u => u.role === 'Técnico').length}
+                {usuarios.filter(u => u.role === 'Usuario').length}
               </p>
             </div>
           </div>
@@ -391,8 +428,6 @@ export default function GestionUsuarioPage() {
               >
                 <option value="Todos">Todos los roles</option>
                 <option value="Administrador">Administrador</option>
-                <option value="Técnico">Técnico</option>
-                <option value="Consultor">Consultor</option>
                 <option value="Usuario">Usuario</option>
               </select>
 
@@ -443,6 +478,7 @@ export default function GestionUsuarioPage() {
                       onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                      placeholder="Ej: Juan Pérez García"
                     />
                   </div>
 
@@ -457,6 +493,7 @@ export default function GestionUsuarioPage() {
                       onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                      placeholder="ejemplo@agrosig.com"
                     />
                   </div>
 
@@ -470,6 +507,7 @@ export default function GestionUsuarioPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                      placeholder="+34 612 345 678"
                     />
                   </div>
 
@@ -483,6 +521,7 @@ export default function GestionUsuarioPage() {
                       value={formData.department}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                      placeholder="Ej: Dirección, Campo, Comercial"
                     />
                   </div>
 
@@ -497,8 +536,6 @@ export default function GestionUsuarioPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                     >
                       <option value="Usuario">Usuario</option>
-                      <option value="Técnico">Técnico</option>
-                      <option value="Consultor">Consultor</option>
                       <option value="Administrador">Administrador</option>
                     </select>
                   </div>
@@ -619,10 +656,6 @@ export default function GestionUsuarioPage() {
                           <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                             usuario.role === 'Administrador' 
                               ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                              : usuario.role === 'Técnico'
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : usuario.role === 'Consultor'
-                              ? 'bg-orange-100 text-orange-800 border border-orange-200'
                               : 'bg-gray-100 text-gray-800 border border-gray-200'
                           }`}>
                             {usuario.role}
@@ -647,7 +680,7 @@ export default function GestionUsuarioPage() {
 
                         {/* Columna Acciones */}
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
                             <button
                               onClick={() => editarUsuario(usuario)}
                               className="text-green-600 hover:text-green-800 transition-colors p-2 rounded-lg hover:bg-green-50"
@@ -655,6 +688,24 @@ export default function GestionUsuarioPage() {
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                              </svg>
+                            </button>
+
+                            <button
+                              onClick={() => cambiarEstadoUsuario(usuario.id, usuario.status === 'Activo' ? 'Inactivo' : 'Activo')}
+                              className={`p-2 rounded-lg transition-colors ${
+                                usuario.status === 'Activo' 
+                                  ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' 
+                                  : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                              }`}
+                              title={usuario.status === 'Activo' ? 'Desactivar usuario' : 'Activar usuario'}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                                {usuario.status === 'Activo' ? (
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                ) : (
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                )}
                               </svg>
                             </button>
 

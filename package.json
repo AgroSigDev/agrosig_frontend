@@ -5,7 +5,14 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:api": "jest services/__tests__/",
+    "test:unit": "jest services/__tests__/api.test.js",
+    "test:integration": "jest services/__tests__/api.integration.test.js",
+    "test:api:integration": "jest services/__tests__/api.integration.test.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -16,8 +23,12 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
     "autoprefixer": "^10.4.21",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "whatwg-fetch": "^3.6.20"
   }
 }

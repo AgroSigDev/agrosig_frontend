@@ -1,8 +1,7 @@
-// app/registro/page.js
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { register } from "../../../services/api";
+import { registerWithImage, validateRegisterFields } from "../../../services/api";
 
 export default function RegistroPage() {
   const [formData, setFormData] = useState({
@@ -22,7 +21,7 @@ export default function RegistroPage() {
   const fileInputRef = useRef(null);
   const router = useRouter();
 
-  // ✅ Componente de Alerta Personalizada
+  // ✅ Componente de Alerta Personalizada (sin cambios)
   const CustomAlert = () => {
     if (!showAlert.show) return null;
 
@@ -91,7 +90,7 @@ export default function RegistroPage() {
     );
   };
 
-  // ✅ Manejar selección de imagen
+  // ✅ Manejar selección de imagen (sin cambios)
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -120,7 +119,7 @@ export default function RegistroPage() {
     }
   };
 
-  // ✅ Eliminar imagen seleccionada
+  // ✅ Eliminar imagen seleccionada (sin cambios)
   const handleRemoveImage = () => {
     setProfileImage(null);
     setImagePreview(null);
@@ -140,33 +139,21 @@ export default function RegistroPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
-    // Validaciones del frontend
-    if (!formData.first_name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError("Por favor, completa todos los campos obligatorios (*)");
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Por favor, ingresa un email válido");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
+    setLoading(true);
 
     try {
-      setLoading(true);
-      
+      // Validaciones del frontend usando la función auxiliar
+      const validationErrors = validateRegisterFields(formData);
+      if (validationErrors.length > 0) {
+        setError(validationErrors[0]);
+        setLoading(false);
+        return;
+      }
+
       // Crear FormData para enviar la imagen
       const formDataToSend = new FormData();
+      
+      // Agregar campos de texto
       formDataToSend.append('first_name', formData.first_name.trim());
       formDataToSend.append('paternal_surname', formData.paternal_surname.trim() || '');
       formDataToSend.append('maternal_surname', formData.maternal_surname.trim() || '');
@@ -178,68 +165,57 @@ export default function RegistroPage() {
         formDataToSend.append('image_user', profileImage);
       }
 
-      console.log("Enviando datos de registro con imagen:", formDataToSend);
-      
-      // Usar fetch directamente para enviar FormData
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        body: formDataToSend,
-        // No incluir Content-Type header, el navegador lo establecerá automáticamente con el boundary
+      console.log("📤 Enviando datos de registro...");
+      console.log("📝 Datos:", {
+        first_name: formData.first_name,
+        paternal_surname: formData.paternal_surname,
+        maternal_surname: formData.maternal_surname,
+        email: formData.email,
+        hasImage: !!profileImage
       });
 
-      const responseText = await response.text();
+      // Usar la función mejorada registerWithImage
+      const result = await registerWithImage(formDataToSend);
 
-      if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
-        throw new Error("Error del servidor: respuesta HTML inesperada");
-      }
-
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (parseError) {
-        throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
-      }
-
-      if (!response.ok) {
-        const errorMessage = result.message || `Error ${response.status} en el registro`;
-        throw new Error(errorMessage);
-      }
+      // ✅ ÉXITO - MOSTRAR ALERTA DE ÉXITO
+      setShowAlert({
+        show: true,
+        type: 'success',
+        message: result.message || '¡Cuenta creada exitosamente! Ahora puedes iniciar sesión con tus credenciales.'
+      });
       
-      if (result.success) {
-        // ✅ MOSTRAR ALERTA DE ÉXITO EN VERDE
-        setShowAlert({
-          show: true,
-          type: 'success',
-          message: '¡Cuenta creada exitosamente! Ahora puedes iniciar sesión con tus credenciales.'
-        });
-        
-        // Limpiar formulario
-        setFormData({
-          first_name: "",
-          paternal_surname: "",
-          maternal_surname: "",
-          email: "",
-          password: "",
-          confirmPassword: ""
-        });
-        setProfileImage(null);
-        setImagePreview(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        
-      } else {
-        throw new Error(result.message || "Error en el registro");
+      // Limpiar formulario
+      setFormData({
+        first_name: "",
+        paternal_surname: "",
+        maternal_surname: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      });
+      setProfileImage(null);
+      setImagePreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
       
     } catch (err) {
-      console.error("Error en registro:", err);
-      // ✅ MOSTRAR ALERTA DE ERROR EN ROJO
+      console.error("❌ Error en registro:", err);
+      
+      // ✅ MOSTRAR ALERTA DE ERROR MEJORADA
+      let errorMessage = err.message || "Error al crear la cuenta. Por favor, intenta nuevamente.";
+      
+      // Manejar errores específicos de red/CORS
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        errorMessage = "Error de conexión. Verifica que el servidor esté ejecutándose y que tengas acceso a HTTPS://localhost:4000";
+      } else if (err.message.includes('certificate') || err.message.includes('SSL')) {
+        errorMessage = "Error de certificado SSL. En desarrollo, puedes ignorar los warnings de certificados auto-firmados.";
+      }
+      
       setShowAlert({
         show: true,
         type: 'error', 
-        message: err.message || "Error al crear la cuenta. Por favor, intenta nuevamente."
+        message: errorMessage
       });
     } finally {
       setLoading(false);
@@ -248,7 +224,7 @@ export default function RegistroPage() {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      handleSubmit();
+      handleSubmit(e);
     }
   };
 
@@ -266,7 +242,7 @@ export default function RegistroPage() {
 
       <div className="w-full max-w-2xl mx-auto relative z-10">
         <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl p-8 md:p-12 border border-emerald-200/60">
-          {/* Header */}
+          {/* Header (sin cambios) */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
               <div 
@@ -311,9 +287,9 @@ export default function RegistroPage() {
             </p>
           </div>
 
-          {/* Formulario de Registro */}
+          {/* Formulario de Registro (sin cambios en la UI) */}
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* ✅ Sección de Imagen de Perfil */}
+            {/* ✅ Sección de Imagen de Perfil (sin cambios) */}
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 {/* Preview de la imagen */}

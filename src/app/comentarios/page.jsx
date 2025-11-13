@@ -1,4 +1,4 @@
-// src/app/comentarios/page.jsx - VERSIÓN CON FORMULARIO ABAJO
+// src/app/comentarios/page.jsx - VERSIÓN MODIFICADA PARA USUARIOS NO LOGUEADOS
 "use client";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -8,7 +8,8 @@ import {
   getComments as fetchComments,
   createComment as createCommentAPI,
   updateComment as updateCommentAPI,
-  deleteComment as deleteCommentAPI
+  deleteComment as deleteCommentAPI,
+  isAuthenticated
 } from "../../../services/api";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
@@ -58,6 +59,7 @@ export default function ComentariosPage() {
   const [editandoComentario, setEditandoComentario] = useState(null);
   const [textoEditado, setTextoEditado] = useState("");
   const [sending, setSending] = useState(false);
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
   const messagesEndRef = useRef(null);
   const router = useRouter();
 
@@ -69,28 +71,38 @@ export default function ComentariosPage() {
   const initializePage = async () => {
     try {
       console.log('🔍 Inicializando página...');
+      
+      // Verificar autenticación sin redirigir
       const status = checkAuthStatus();
-      if (!status.isAuthenticated) {
-        console.log('❌ No autenticado, redirigiendo...');
-        router.push('/login');
-        return;
-      }
+      const authenticated = isAuthenticated();
+      setUserAuthenticated(authenticated);
 
       notificationService.init();
 
-      // Obtener datos del usuario actual
-      console.log('🔍 Obteniendo usuario actual...');
-      const currentUser = await getCurrentUser();
+      if (authenticated) {
+        // Obtener datos del usuario actual solo si está autenticado
+        console.log('🔍 Usuario autenticado, obteniendo datos...');
+        try {
+          const currentUser = await getCurrentUser();
+          setUserData({
+            name: currentUser.first_name || "Usuario AGROSIG",
+            email: currentUser.email || "usuario@agrosig.com",
+            role: "Usuario Premium",
+            userId: currentUser.user_id,
+            profileImage: currentUser.profile_image || currentUser.avatar_url || null
+          });
+        } catch (userError) {
+          console.error('❌ Error obteniendo datos del usuario:', userError);
+          // Si hay error al obtener datos del usuario, considerar como no autenticado
+          setUserAuthenticated(false);
+          removeAuthTokens();
+        }
+      } else {
+        console.log('👤 Usuario no autenticado - modo vista');
+        setUserData(null);
+      }
 
-      setUserData({
-        name: currentUser.first_name || "Usuario AGROSIG",
-        email: currentUser.email || "usuario@agrosig.com",
-        role: "Usuario Premium",
-        userId: currentUser.user_id,
-        profileImage: currentUser.profile_image || currentUser.avatar_url || null
-      });
-
-      // Cargar comentarios
+      // Cargar comentarios (siempre, sin importar autenticación)
       await cargarComentarios();
     } catch (error) {
       console.error('❌ Error inicializando página:', error);
@@ -124,7 +136,9 @@ export default function ComentariosPage() {
         ...formatDate(comment.created_at || new Date()),
         is_edited: comment.is_edited,
         is_deleted: comment.is_deleted,
-        respuestas: []
+        respuestas: [],
+        // Añadir información del usuario actual para control de edición/eliminación
+        canEdit: userAuthenticated && userData && comment.user_id === userData.userId
       }));
 
       setComentarios(comentariosFormateados);
@@ -144,13 +158,26 @@ export default function ComentariosPage() {
     scrollToBottom();
   }, [comentarios]);
 
-  const handleLogout = () => {
-    notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
-    removeAuthTokens();
+  const handleLoginRedirect = () => {
+    notificationService.showInfoNotification('Por favor, inicia sesión para comentar');
     router.push('/login');
   };
 
+  const handleLogout = () => {
+    notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
+    removeAuthTokens();
+    setUserAuthenticated(false);
+    setUserData(null);
+    // Recargar comentarios para actualizar permisos
+    cargarComentarios();
+  };
+
   const agregarComentario = async () => {
+    if (!userAuthenticated) {
+      handleLoginRedirect();
+      return;
+    }
+
     if (nuevoComentario.trim() === "") {
       notificationService.showErrorNotification('El comentario no puede estar vacío');
       return;
@@ -173,6 +200,11 @@ export default function ComentariosPage() {
   };
 
   const editarComentario = async (comentarioId) => {
+    if (!userAuthenticated) {
+      handleLoginRedirect();
+      return;
+    }
+
     if (textoEditado.trim() === "") {
       notificationService.showErrorNotification('El comentario no puede estar vacío');
       return;
@@ -193,6 +225,11 @@ export default function ComentariosPage() {
   };
 
   const eliminarComentario = async (comentarioId) => {
+    if (!userAuthenticated) {
+      handleLoginRedirect();
+      return;
+    }
+
     try {
       const confirmed = await notificationService.showDeleteConfirmation();
 
@@ -259,125 +296,140 @@ export default function ComentariosPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
       <Navigation userData={userData} onLogout={handleLogout} />
 
-      
-
-        {/* Tarjeta Principal */}
-        <div className="bg-white p-2  shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm h-[85vh] min-h-[700px] flex flex-col">
-          
-          {/* Header con gradiente profesional */}
-          <div className="bg-green-700 from-slate-700 to-slate-800 px-8 py-6 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Comentarios de la Comunidad</h2>
-                  <p className="text-slate-200 text-sm">Comparte y conecta con profesionales del sector</p>
-                </div>
+      {/* Tarjeta Principal */}
+      <div className="bg-white p-2 shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm h-[85vh] min-h-[700px] flex flex-col">
+        
+        {/* Header con gradiente profesional */}
+        <div className="bg-green-700 from-slate-700 to-slate-800 px-8 py-6 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                </svg>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="text-white text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">
-                  {comentarios.length} comentarios
-                </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Comentarios de la Comunidad</h2>
+                <p className="text-slate-200 text-sm">
+                  {userAuthenticated 
+                    ? "Comparte y conecta con profesionales del sector" 
+                    : "Conecta con profesionales del sector - Inicia sesión para comentar"
+                  }
+                </p>
               </div>
             </div>
+            <div className="flex items-center space-x-3">
+              <div className="text-white text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">
+                {comentarios.length} comentarios
+              </div>
+              {!userAuthenticated && (
+                <button
+                  onClick={handleLoginRedirect}
+                  className="bg-white text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                >
+                  Iniciar Sesión
+                </button>
+              )}
+            </div>
           </div>
+        </div>
 
-          {/* Área de Contenido Principal */}
-          <div className="flex-1 flex flex-col min-h-0">
-            
-            {/* Lista de Comentarios - Área Scrollable (ARRIBA) */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
-              {comentarios.length === 0 ? (
-                <div className="text-center py-16 h-full flex items-center justify-center">
-                  <div className="max-w-md">
-                    <div className="text-6xl mb-4 opacity-20 text-gray-400">💬</div>
-                    <h3 className="text-xl font-semibold text-gray-500 mb-2">
-                      Aún no hay comentarios
-                    </h3>
-                    <p className="text-gray-400 text-sm">
-                      Sé el primero en iniciar una conversación y compartir tus conocimientos con la comunidad
-                    </p>
-                  </div>
+        {/* Área de Contenido Principal */}
+        <div className="flex-1 flex flex-col min-h-0">
+          
+          {/* Lista de Comentarios - Área Scrollable (ARRIBA) */}
+          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+            {comentarios.length === 0 ? (
+              <div className="text-center py-16 h-full flex items-center justify-center">
+                <div className="max-w-md">
+                  <div className="text-6xl mb-4 opacity-20 text-gray-400">💬</div>
+                  <h3 className="text-xl font-semibold text-gray-500 mb-2">
+                    Aún no hay comentarios
+                  </h3>
+                  <p className="text-gray-400 text-sm">
+                    {userAuthenticated 
+                      ? "Sé el primero en iniciar una conversación y compartir tus conocimientos con la comunidad"
+                      : "Sé el primero en iniciar una conversación - Inicia sesión para comentar"
+                    }
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {comentarios.map((comentario) => (
-                    <div
-                      key={comentario.id}
-                      className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200"
-                    >
-                      {/* Header del Comentario */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <UserAvatar user={comentario.usuario} />
-                          
-                          <div>
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="text-base font-semibold text-gray-900">
-                                {comentario.usuario.nombre}
-                              </h3>
-                              <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded font-medium border border-gray-200">
-                                {comentario.usuario.rol}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2 text-xs text-gray-500">
-                              <span>{comentario.relativo}</span>
-                              {comentario.is_edited && (
-                                <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded border border-gray-200">
-                                  Editado
-                                </span>
-                              )}
-                            </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {comentarios.map((comentario) => (
+                  <div
+                    key={comentario.id}
+                    className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200"
+                  >
+                    {/* Header del Comentario */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <UserAvatar user={comentario.usuario} />
+                        
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="text-base font-semibold text-gray-900">
+                              {comentario.usuario.nombre}
+                            </h3>
+                            <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded font-medium border border-gray-200">
+                              {comentario.usuario.rol}
+                            </span>
                           </div>
-                        </div>
-
-                        <div className="text-right">
-                          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                            {comentario.fecha}
-                          </span>
+                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                            <span>{comentario.relativo}</span>
+                            {comentario.is_edited && (
+                              <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded border border-gray-200">
+                                Editado
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Contenido del Comentario */}
-                      {editandoComentario === comentario.id ? (
-                        <div className="mb-4">
-                          <textarea
-                            value={textoEditado}
-                            onChange={(e) => setTextoEditado(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 resize-none text-gray-700 text-sm leading-relaxed bg-white"
-                            rows="3"
-                            autoFocus
-                          />
-                          <div className="flex items-center justify-end space-x-2 mt-3">
-                            <button
-                              onClick={() => setEditandoComentario(null)}
-                              className="px-3 py-1.5 text-gray-600 hover:text-gray-800 font-medium border border-gray-300 rounded hover:bg-gray-50 transition-colors text-xs"
-                            >
-                              Cancelar
-                            </button>
-                            <button
-                              onClick={() => editarComentario(comentario.id)}
-                              disabled={!textoEditado.trim()}
-                              className={`px-3 py-1.5 rounded font-medium transition-all text-xs ${textoEditado.trim()
-                                ? 'bg-slate-700 text-white hover:bg-slate-800'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                            >
-                              Guardar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-gray-700 leading-relaxed text-sm mb-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                          {comentario.texto}
-                        </p>
-                      )}
+                      <div className="text-right">
+                        <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                          {comentario.fecha}
+                        </span>
+                      </div>
+                    </div>
 
-                      {/* Acciones del Comentario */}
+                    {/* Contenido del Comentario */}
+                    {editandoComentario === comentario.id ? (
+                      <div className="mb-4">
+                        <textarea
+                          value={textoEditado}
+                          onChange={(e) => setTextoEditado(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 resize-none text-gray-700 text-sm leading-relaxed bg-white"
+                          rows="3"
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-end space-x-2 mt-3">
+                          <button
+                            onClick={() => setEditandoComentario(null)}
+                            className="px-3 py-1.5 text-gray-600 hover:text-gray-800 font-medium border border-gray-300 rounded hover:bg-gray-50 transition-colors text-xs"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => editarComentario(comentario.id)}
+                            disabled={!textoEditado.trim()}
+                            className={`px-3 py-1.5 rounded font-medium transition-all text-xs ${textoEditado.trim()
+                              ? 'bg-slate-700 text-white hover:bg-slate-800'
+                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              }`}
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-700 leading-relaxed text-sm mb-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                        {comentario.texto}
+                      </p>
+                    )}
+
+                    {/* Acciones del Comentario - Solo para usuarios autenticados y dueños del comentario */}
+                    {userAuthenticated && comentario.canEdit && (
                       <div className="flex items-center justify-end pt-3 border-t border-gray-100">
                         <div className="flex items-center space-x-3">
                           <button
@@ -408,14 +460,16 @@ export default function ComentariosPage() {
                           </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </div>
-              )}
-            </div>
+                    )}
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
 
-            {/* Formulario de Nuevo Comentario (ABAJO) */}
+          {/* Formulario de Nuevo Comentario (ABAJO) - Solo para usuarios autenticados */}
+          {userAuthenticated ? (
             <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-white to-gray-50/50 flex-shrink-0">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
@@ -482,9 +536,35 @@ export default function ComentariosPage() {
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-white to-gray-50/50 flex-shrink-0">
+              <div className="text-center py-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-blue-600">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                    <div>
+                      <p className="text-blue-800 font-medium">
+                        Inicia sesión para comentar
+                      </p>
+                      <p className="text-blue-600 text-sm">
+                        Únete a la conversación y comparte tus experiencias
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleLoginRedirect}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Iniciar Sesión
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      
+      </div>
     </div>
   );
 }

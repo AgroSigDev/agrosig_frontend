@@ -1,35 +1,104 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus } from "../../../services/api";
+import { removeAuthTokens, checkAuthStatus, getCurrentUser } from "../../../services/api";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
 import Image from 'next/image';
 
+const getInitialFromName = (name) => {
+  if (!name) return 'U';
+  return name.charAt(0).toUpperCase();
+};
+
+const getColorFromId = (id) => {
+  const colors = [
+    'bg-green-500', 'bg-blue-500', 'bg-purple-500',
+    'bg-red-500', 'bg-yellow-500', 'bg-indigo-500'
+  ];
+  return colors[id % colors.length] || 'bg-gray-500';
+};
+
 export default function DashboardPage() {
   const [userData, setUserData] = useState(null);
   const [isClient, setIsClient] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [usuarios, setUsuarios] = useState([]);
+
   const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
-
-    const status = checkAuthStatus();
-    if (!status.isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
-    notificationService.init();
-    setUserData({
-      name: "Usuario AGROSIG",
-      email: status.tokens.accessToken ? "usuario@agrosig.com" : "Invitado"
-    });
+    initializePage();
   }, [router]);
+
+  const cargarUsuarios = async () => {
+    try {
+      setLoading(true);
+      setTimeout(() => {
+        const usuariosIniciales = [];
+        setUsuarios(usuariosIniciales);
+        setLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+      notificationService.showErrorNotification('Error al cargar usuarios: ' + error.message);
+      setLoading(false);
+    }
+  };
+
+  const initializePage = async () => {
+    try {
+      console.log('Inicializando página de dashboard...');
+      
+      // ✅ MODIFICADO: No verificar autenticación forzosa
+      const status = checkAuthStatus();
+      
+      if (status.isAuthenticated) {
+        console.log('Usuario autenticado, cargando datos...');
+        notificationService.init();
+
+        // Obtener datos del usuario actual si está autenticado
+        try {
+          const currentUser = await getCurrentUser();
+          console.log('Datos del usuario desde API:', currentUser);
+
+          setUserData({
+            name: currentUser.first_name || "Administrador AGROSIG",
+            email: currentUser.email || "admin@agrosig.com",
+            role: "Administrador",
+            userId: currentUser.id,
+            profileImage: currentUser.profile_image || currentUser.avatar_url || null
+          });
+        } catch (userError) {
+          console.log('No se pudieron cargar datos del usuario, continuando sin autenticación');
+        }
+      } else {
+        console.log('Usuario no autenticado, mostrando dashboard público');
+        // No establecer userData, para que Navigation muestre "Iniciar Sesión"
+      }
+
+      // Cargar usuarios (si es necesario)
+      await cargarUsuarios();
+    } catch (error) {
+      console.error('Error inicializando página:', error);
+      // No mostrar error para usuarios no autenticados
+      if (checkAuthStatus().isAuthenticated) {
+        notificationService.showErrorNotification('Error al cargar los usuarios: ' + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
     removeAuthTokens();
+    setUserData(null); // Limpiar datos del usuario
+    // No redirigir, mantener en el dashboard
+  };
+
+  const handleLogin = () => {
     router.push('/login');
   };
 
@@ -74,16 +143,45 @@ export default function DashboardPage() {
       description: "Pronósticos del tiempo precisos y alertas climáticas para optimizar tus decisiones",
       capabilities: ["Pronóstico 7 días", "Alertas de heladas", "Datos históricos"]
     },
-
   ];
 
-  if (!isClient) {
+  // Componente para mostrar el avatar
+  const UserAvatar = ({ user, size = "w-8 h-8" }) => {
+    if (user && user.profileImage) {
+      return (
+        <img
+          src={user.profileImage}
+          alt={`Avatar de ${user.name}`}
+          className={`${size} rounded-lg object-cover shadow-sm border border-gray-200`}
+        />
+      );
+    }
+
+    if (user) {
+      return (
+        <div className={`${size} ${getColorFromId(user.userId || 0)} rounded-lg flex items-center justify-center text-white font-semibold text-sm shadow-sm border border-gray-200`}>
+          {getInitialFromName(user.name)}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  if (!isClient || loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mx-auto mb-4"></div>
-          <div className="text-2xl font-bold text-green-800 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg">
-            Cargando AGROSIG...
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+        <Navigation 
+          userData={userData} 
+          onLogout={handleLogout} 
+          onLogin={handleLogin}
+        />
+        <div className="flex justify-center items-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-transparent mx-auto mb-4"></div>
+            <div className="text-2xl font-semibold text-slate-700 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg">
+              Cargando...
+            </div>
           </div>
         </div>
       </div>
@@ -92,10 +190,11 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-      {/* Componente de Navegación  */}
+      {/* Componente de Navegación - Ahora maneja usuarios no autenticados */}
       <Navigation
         userData={userData}
         onLogout={handleLogout}
+        onLogin={handleLogin}
       />
 
       {/* Hero Section */}
@@ -121,7 +220,7 @@ export default function DashboardPage() {
                 Monitorea, gestiona y optimiza en tiempo real.
               </p>
 
-              {/* Boton de descarga - MODIFICADO: Padding reducido */}
+              {/* Botones de acción */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleDownload}
@@ -133,6 +232,20 @@ export default function DashboardPage() {
                   </div>
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
+                
+                {/* ✅ BOTÓN DE LOGIN PARA USUARIOS NO AUTENTICADOS */}
+                {!userData && (
+                  <button
+                    onClick={handleLogin}
+                    className="border-2 border-white text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-green-800 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 flex items-center justify-center space-x-4 group max-w-md mx-auto lg:mx-0"
+                  >
+                    <div className="text-left">
+                      <div className="text-sm opacity-90">¿Ya tienes cuenta?</div>
+                      <div className="font-black text-xl">INICIAR SESIÓN</div>
+                    </div>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -163,8 +276,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Resto del código se mantiene igual */}
-      {/* seccion Funcionalidades  */}
+      {/* seccion Funcionalidades */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -209,7 +321,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* seccion de beneficios  */}
+      {/* seccion de beneficios */}
       <section className="py-20 bg-gradient-to-br from-green-50 to-emerald-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -266,7 +378,7 @@ export default function DashboardPage() {
             Descarga AGROSIG y lleva el control total de tus cultivos a cualquier lugar
           </p>
 
-          <div className="flex justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleDownload}
               className="bg-white text-green-800 px-16 py-5 rounded-2xl font-bold text-2xl hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 flex items-center space-x-4"
@@ -277,6 +389,20 @@ export default function DashboardPage() {
               </div>
               <span className="text-2xl">↓</span>
             </button>
+            
+            {/* ✅ BOTÓN DE REGISTRO PARA USUARIOS NO AUTENTICADOS */}
+            {!userData && (
+              <button
+                onClick={() => router.push('/registro')}
+                className="border-2 border-white text-white px-16 py-5 rounded-2xl font-bold text-2xl hover:bg-white hover:text-green-800 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 flex items-center space-x-4"
+              >
+                <div className="text-left">
+                  <div className="text-sm opacity-90">¿Nuevo usuario?</div>
+                  <div className="font-black">REGISTRARSE</div>
+                </div>
+                <span className="text-2xl">→</span>
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -325,14 +451,16 @@ export default function DashboardPage() {
                     Comentarios
                   </button>
                 </li>
-                <li>
-                  <button
-                    onClick={() => handleComingSoon('Administrar Usuarios')}
-                    className="hover:text-white transition-colors cursor-pointer"
-                  >
-                    Administrar Usuarios
-                  </button>
-                </li>
+                {userData && (
+                  <li>
+                    <button
+                      onClick={() => handleComingSoon('Administrar Usuarios')}
+                      className="hover:text-white transition-colors cursor-pointer"
+                    >
+                      Administrar Usuarios
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
           </div>

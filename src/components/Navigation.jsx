@@ -4,43 +4,36 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import clsx from "clsx";
 import notificationService from "../utils/notifications";
-import { getProfileImageUrl } from "../../services/api"; 
+import { getProfileImageUrl, getAuthToken } from "../../services/api";
 
-const Navigation = ({ userData, onLogout, isLoading = false }) => {
+const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const userMenuRef = useRef(null);
 
-  // DEBUG: Verificar datos del usuario
+  // DEBUG: Verificar estructura del usuario
   useEffect(() => {
-    console.log("🔄 [NAVIGATION] userData actualizado:", userData);
-    
     if (userData) {
-      console.log("🔍 [DEBUG] userData completo:", userData);
-      console.log("🔍 [DEBUG] role_id:", userData.role_id, "Tipo:", typeof userData.role_id);
-      console.log("🔍 [DEBUG] email:", userData.email);
-      console.log("🔍 [DEBUG] Todos los campos:", Object.keys(userData));
-      
-      // DEBUG COMPLETO TEMPORAL
-      console.log("🚨 [DEBUG COMPLETO] userData estructura:", JSON.stringify(userData, null, 2));
-      console.log("🚨 [DEBUG] role_id valor:", userData.role_id);
-      console.log("🚨 [DEBUG] role_id tipo:", typeof userData.role_id);
-      console.log("🚨 [DEBUG] role_id == 1:", userData.role_id == 1);
-      console.log("🚨 [DEBUG] role_id === 1:", userData.role_id === 1);
-      console.log("🚨 [DEBUG] Number(role_id) === 1:", Number(userData.role_id) === 1);
-      
-      // Probar la función isAdmin manualmente
+      console.log("🔍 [NAVIGATION] userData recibido:", userData);
+      console.log("🔍 [NAVIGATION] Email del usuario:", userData.email);
+      console.log("🔍 [NAVIGATION] Campos disponibles:", Object.keys(userData));
+
+      // Verificar si tiene role_id
+      console.log("🔍 [NAVIGATION] ¿Tiene role_id?:", 'role_id' in userData);
+      console.log("🔍 [NAVIGATION] role_id valor:", userData.role_id);
+
+      // Verificar si es admin
       const adminCheck = isAdmin();
-      console.log("🔍 [DEBUG] Resultado de isAdmin():", adminCheck);
+      console.log("🔍 [NAVIGATION] ¿Es admin?:", adminCheck);
     }
   }, [userData]);
 
-  // PROBLEMA 1: Optimizar el scroll con throttling
+  // Scroll effect
   useEffect(() => {
     let ticking = false;
-    
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
@@ -80,96 +73,137 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
     if (confirmed && onLogout) onLogout();
   };
 
+  const handleLoginClick = () => {
+    if (onLogin) {
+      onLogin();
+    } else {
+      router.push('/login');
+    }
+  };
+
+  // ✅ FUNCIÓN MEJORADA: Obtener nombre completo del usuario
   const getUserFullName = () => {
     if (!userData) return "Cargando...";
+
+    // Si ya existe un campo name, usarlo
     if (userData.name) return userData.name;
-    const { first_name = "", paternal_surname = "", maternal_surname = "" } = userData;
-    const fullName = `${first_name} ${paternal_surname} ${maternal_surname}`.trim();
-    return fullName || userData?.email?.split('@')[0] || "Usuario";
+
+    // Construir nombre completo desde los campos individuales
+    if (userData.first_name) {
+      const { first_name = "", paternal_surname = "", maternal_surname = "" } = userData;
+
+      // Combinar nombres y apellidos, filtrando vacíos
+      const nameParts = [first_name, paternal_surname, maternal_surname].filter(part => part && part.trim() !== '');
+      const fullName = nameParts.join(' ').trim();
+
+      return fullName || userData.email?.split('@')[0] || "Usuario";
+    }
+
+    // Fallback al email si no hay nombre
+    return userData.email?.split('@')[0] || "Usuario";
+  };
+
+  // ✅ FUNCIÓN NUEVA: Obtener información detallada del usuario para mostrar
+  const getUserDisplayInfo = () => {
+    if (!userData) {
+      return {
+        fullName: "Cargando...",
+        email: "cargando...",
+        role: "Cargando...",
+        initials: "C",
+        isAdmin: false
+      };
+    }
+
+    const adminStatus = isAdmin();
+    const fullName = getUserFullName();
+    const initials = getUserInitial();
+    const email = userData.email || "No disponible";
+    const role = adminStatus ? "Administrador" : "Usuario";
+
+    return {
+      fullName,
+      email,
+      role,
+      initials,
+      isAdmin: adminStatus
+    };
   };
 
   const getUserInitial = () => {
     if (!userData) return "C";
     const name = getUserFullName();
-    return name ? name[0].toUpperCase() : userData?.email?.[0].toUpperCase() || "U";
+    return name ? name[0].toUpperCase() : userData.email?.[0].toUpperCase() || "U";
   };
 
-  // SOLUCIÓN ROBUSTA: Verificar por role_id Y por email como fallback
+  // ✅ FUNCIÓN CORREGIDA: Verificar admin de forma robusta
   const isAdmin = () => {
     if (!userData) {
       console.log("❌ [isAdmin] userData no disponible");
       return false;
     }
-    
-    // DEBUG: Verificar todos los campos disponibles
-    console.log("🔍 [isAdmin DEBUG] userData completo:", userData);
-    console.log("🔍 [isAdmin DEBUG] Campos disponibles:", Object.keys(userData));
-    
-    // Método 1: Por role_id (múltiples formas de verificar)
-    const roleId = userData.role_id;
-    console.log("🔍 [isAdmin DEBUG] role_id crudo:", roleId, "Tipo:", typeof roleId);
-    
-    // Convertir a número y verificar
-    const numericRoleId = Number(roleId);
-    console.log("🔍 [isAdmin DEBUG] role_id numérico:", numericRoleId);
-    
-    if (numericRoleId === 1) {
-      console.log("✅ [isAdmin] Admin detectado por role_id === 1");
-      return true;
-    }
-    
-    // También verificar como string por si acaso
-    if (roleId === "1" || roleId === 1) {
-      console.log("✅ [isAdmin] Admin detectado por role_id string '1'");
-      return true;
-    }
-    
-    // Verificar si existe un campo role_name o similar
-    if (userData.role_name === "admin" || userData.role === "admin") {
-      console.log("✅ [isAdmin] Admin detectado por role_name");
-      return true;
-    }
-    
-    // Método 2: Fallback por email específico de Gabriel
-    const gabrielEmails = [
-      'ga78gober@gmail.com',
-      'g878goher@gmail.com',
-      'gabriel@gmail.com',
-      // Agregar más emails de prueba si es necesario
-    ];
-    
-    const userEmail = userData?.email?.toLowerCase() || '';
-    console.log("🔍 [isAdmin DEBUG] Email del usuario:", userEmail);
-    
-    const isGabriel = gabrielEmails.includes(userEmail);
-    
-    if (isGabriel) {
-      console.log("✅ [isAdmin] Admin detectado por email (Gabriel)");
-      return true;
-    }
-    
-    console.log(" [isAdmin] Usuario normal - Role ID:", roleId, "Tipo:", typeof roleId, "Email:", userEmail);
-    console.log("[isAdmin] Todos los campos:", Object.keys(userData));
-    return false;
-  };
 
-  // Función para obtener el nombre del rol
-  const getRoleName = () => {
-    if (!userData) return "Cargando...";
-    
-    // Verificar directamente los datos para debug
-    console.log("🔍 [getRoleName] role_id:", userData.role_id, "Tipo:", typeof userData.role_id);
-    
-    if (isAdmin()) {
-      return "Administrador";
+    console.log("🎯 [isAdmin] Verificando admin para:", userData.email);
+
+    // MÉTODO 1: Verificar role_id en userData (si el backend lo incluye)
+    if (userData.role_id !== undefined && userData.role_id !== null) {
+      console.log("🔍 [isAdmin] role_id en userData:", userData.role_id, "Tipo:", typeof userData.role_id);
+
+      // Convertir a número y verificar
+      const roleId = Number(userData.role_id);
+      if (roleId === 1) {
+        console.log("✅ [isAdmin] ADMIN detectado por role_id en userData");
+        return true;
+      }
+
+      // También verificar como string
+      if (userData.role_id === "1") {
+        console.log("✅ [isAdmin] ADMIN detectado por role_id (string) en userData");
+        return true;
+      }
     }
-    
-    // Si no es admin, podrías tener otros roles
-    const roleId = Number(userData.role_id);
-    if (roleId === 2) return "Usuario";
-    if (roleId === 3) return "Moderador";
-    
-    return "Usuario";
+
+    // MÉTODO 2: Verificar role_id en el token JWT
+    try {
+      const token = getAuthToken();
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log("🔍 [isAdmin] Payload del token:", payload);
+
+        if (payload.role_id === 1 || payload.role_id === "1") {
+          console.log("✅ [isAdmin] ADMIN detectado por role_id en token JWT");
+          return true;
+        }
+      }
+    } catch (error) {
+      console.log("❌ [isAdmin] Error decodificando token:", error);
+    }
+
+    // MÉTODO 3: Fallback por email específico
+    const adminEmails = [
+      'ga78goher@gmail.com',
+      'ga78gober@gmail.com',
+      'gabriel@gmail.com',
+      'admin@agrotec.com'
+    ];
+
+    const userEmail = userData.email?.toLowerCase().trim() || '';
+    console.log("🔍 [isAdmin] Email del usuario:", userEmail);
+
+    if (adminEmails.includes(userEmail)) {
+      console.log("✅ [isAdmin] ADMIN detectado por email específico");
+      return true;
+    }
+
+    console.log("❌ [isAdmin] USUARIO NORMAL");
+    console.log("📋 [isAdmin] userData para debug:", {
+      email: userData.email,
+      role_id: userData.role_id,
+      has_role_id: 'role_id' in userData,
+      all_fields: Object.keys(userData)
+    });
+
+    return false;
   };
 
   // Navegación base para todos los usuarios
@@ -225,11 +259,13 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
   ];
 
   // Combinar navegación según el rol
-  const navigationItems = isAdmin() 
+  const adminStatus = isAdmin();
+  const navigationItems = adminStatus
     ? [...baseNavigationItems, ...adminNavigationItems]
     : baseNavigationItems;
 
-  // PROBLEMA 2: Mejorar la detección de ruta activa
+  console.log("🎯 [NAVIGATION] Estado final - Admin:", adminStatus, "Items:", navigationItems.length);
+
   const isActive = (path) => {
     if (path === "/dashboard") {
       return pathname === "/dashboard";
@@ -239,29 +275,29 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
 
   const UserAvatar = ({ size = 8, showDropdown = false, userData }) => {
     const sizeClass = `w-${size} h-${size}`;
-    
+
     const imgUrl = getProfileImageUrl(userData?.image_user);
-    
+
     return (
       <div className="relative flex items-center">
         {imgUrl ? (
-          <img 
-            src={imgUrl} 
-            alt="Avatar" 
-            className={`${sizeClass} rounded-full object-cover border border-gray-300 shadow-sm hover:shadow-md transition-all cursor-pointer`} 
+          <img
+            src={imgUrl}
+            alt="Avatar"
+            className={`${sizeClass} rounded-full object-cover border border-gray-300 shadow-sm hover:shadow-md transition-all cursor-pointer`}
           />
         ) : (
-          <div 
+          <div
             className={`${sizeClass} rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-medium text-xs shadow-sm cursor-pointer hover:shadow-md transition-all`}
           >
             {getUserInitial()}
           </div>
         )}
         {showDropdown && (
-          <svg 
-            className={`w-3 h-3 ml-2 text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-3 h-3 ml-2 text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -271,13 +307,16 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
     );
   };
 
+  // Obtener información del usuario para mostrar
+  const userInfo = getUserDisplayInfo();
+
   // Estado de carga
   if (isLoading) {
     return (
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
+            {/* Logo skeleton */}
             <div className="flex items-center space-x-3">
               <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
               <div className="flex flex-col space-y-1">
@@ -285,7 +324,7 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
                 <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
               </div>
             </div>
-            
+
             {/* Navigation Items Skeleton */}
             <div className="flex items-center space-x-1">
               {[1, 2, 3].map((item) => (
@@ -311,8 +350,8 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
     <nav
       className={clsx(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-200 border-b backdrop-blur-lg",
-        isScrolled 
-          ? "bg-white/95 shadow-sm border-gray-200/80" 
+        isScrolled
+          ? "bg-white/95 shadow-sm border-gray-200/80"
           : "bg-white/98 border-gray-100"
       )}
       role="navigation"
@@ -321,15 +360,15 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div 
+          <div
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => router.push("/dashboard")}
           >
             <div className="relative">
-              <img 
-                src="/logo-soluciones-agrotec.png" 
-                alt="Soluciones Agrotec" 
-                className="h-8 w-auto transition-all duration-200 group-hover:scale-105" 
+              <img
+                src="/logo-soluciones-agrotec.png"
+                alt="Soluciones Agrotec"
+                className="h-8 w-auto transition-all duration-200 group-hover:scale-105"
               />
             </div>
             <div className="flex flex-col">
@@ -355,8 +394,7 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
               >
                 {icon}
                 <span className="font-semibold">{label}</span>
-                
-                {/* Active indicator - SOLO mostrar cuando está activo */}
+
                 {isActive(path) && (
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full" />
                 )}
@@ -364,59 +402,109 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
             ))}
           </div>
 
-          {/* User Section */}
+          {/* ✅ SECCIÓN MEJORADA: Maneja tanto usuarios autenticados como no autenticados */}
           <div className="flex items-center" ref={userMenuRef}>
             {userData ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className={clsx(
-                    "flex items-center space-x-3 rounded-lg px-3 py-2 transition-all duration-200 border",
+                    "flex items-center space-x-4 rounded-lg px-4 py-2 transition-all duration-200 border",
                     isUserMenuOpen
                       ? "bg-gray-50 border-gray-300 shadow-sm"
                       : "bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm"
                   )}
                 >
                   <UserAvatar showDropdown={true} userData={userData} />
+
+                  {/* ✅ INFORMACIÓN DEL USUARIO MÁS DESTACADA */}
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-900 leading-tight">
-                      {getUserFullName()}
+                    {/* ✅ NOMBRE COMPLETO MÁS GRANDE Y VISIBLE */}
+                    <p className="text-sm font-bold text-gray-900 leading-tight">
+                      {userInfo.fullName}
                     </p>
-                    <p className={clsx(
-                      "text-xs font-medium capitalize",
-                      isAdmin() 
-                        ? "text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full" 
-                        : "text-gray-500"
-                    )}>
-                      {getRoleName()}
+
+                    {/* ✅ EMAIL VISIBLE SIEMPRE */}
+                    <p className="text-xs text-gray-600 mt-1">
+                      {userInfo.email}
                     </p>
+
+                    {/* ✅ INFORMACIÓN ADICIONAL: Rol y Estado */}
+                    <div className="flex items-center justify-end space-x-2 mt-1">
+                      <p className={clsx(
+                        "text-xs font-medium capitalize px-2 py-0.5 rounded-full",
+                        adminStatus
+                          ? "text-blue-700 bg-blue-100 border border-blue-200"
+                          : "text-gray-600 bg-gray-100 border border-gray-200"
+                      )}>
+                        {userInfo.role}
+                      </p>
+
+                      {/* ✅ INDICADOR VISUAL DE CONEXIÓN */}
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-gray-500">Conectado</span>
+                      </div>
+                    </div>
                   </div>
                 </button>
 
-                {/* User Dropdown Menu */}
+                {/* ✅ DROPDOWN MENU MEJORADO con más información */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200/80 backdrop-blur-sm py-2 z-50">
-                    {/* User Info */}
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200/80 backdrop-blur-sm py-2 z-50">
+                    {/* ✅ ENCABEZADO MEJORADO con más información */}
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {getUserFullName()}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate mt-1">
-                        {userData.email}
-                      </p>
-                      <div className={clsx(
-                        "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2",
-                        isAdmin()
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      )}>
-                        {isAdmin() ? "👑 Administrador" : "👤 Usuario"}
+                      <div className="flex items-center space-x-3">
+                        <UserAvatar size={12} userData={userData} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {userInfo.fullName}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate mt-1">
+                            {userInfo.email}
+                          </p>
+
+                          {/* ✅ BADGE DE ROL MEJORADO */}
+                          <div className={clsx(
+                            "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2",
+                            adminStatus
+                              ? "bg-blue-100 text-blue-800 border border-blue-200"
+                              : "bg-gray-100 text-gray-800 border border-gray-200"
+                          )}>
+                            {adminStatus ? (
+                              <>
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Administrador
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                                Usuario
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ✅ INFORMACIÓN ADICIONAL DE SESIÓN */}
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Sesión activa</span>
+                          <span className="flex items-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                            En línea
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    
+
                     {/* Menu Items */}
                     <div className="py-1">
-                      <button 
+                      <button
                         onClick={() => handleComingSoon("Mi Perfil")}
                         className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors duration-150 group"
                       >
@@ -425,20 +513,10 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
-                        <span className="font-medium">Mi Perfil</span>
-                      </button>
-
-                      <button 
-                        onClick={() => handleComingSoon("Configuración")}
-                        className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors duration-150 group"
-                      >
-                        <div className="p-1.5 rounded-lg bg-gray-100 group-hover:bg-gray-200 transition-colors">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
+                        <div className="text-left">
+                          <span className="font-medium">Mi Perfil</span>
+                          <p className="text-xs text-gray-500">Ver y editar tu información</p>
                         </div>
-                        <span className="font-medium">Configuración</span>
                       </button>
                     </div>
 
@@ -453,16 +531,37 @@ const Navigation = ({ userData, onLogout, isLoading = false }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                           </svg>
                         </div>
-                        <span className="font-medium">Cerrar Sesión</span>
+                        <div className="text-left">
+                          <span className="font-medium">Cerrar Sesión</span>
+                          <p className="text-xs text-red-500">Salir de {userInfo.fullName}</p>
+                        </div>
                       </button>
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              // Estado cuando no hay userData (pero no está cargando)
-              <div className="text-sm text-gray-500 px-3 py-2">
-                No autenticado
+              // ✅ ESTADO MEJORADO PARA USUARIOS NO AUTENTICADOS
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleLoginClick}
+                  className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-all duration-200 border border-green-200 hover:border-green-300 hover:shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="font-semibold">Iniciar Sesión</span>
+                </button>
+                
+                <button
+                  onClick={() => router.push('/registro')}
+                  className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-200 border border-green-600 hover:border-green-700 hover:shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  <span className="font-semibold">Registrarse</span>
+                </button>
               </div>
             )}
           </div>

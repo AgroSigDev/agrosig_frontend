@@ -1,4 +1,4 @@
-// services/api.js - CORREGIDO PARA USAR USER_ID DEL TOKEN
+// services/api.js - COMPLETO Y ACTUALIZADO
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -75,7 +75,7 @@ export const debugAuthToken = () => {
   }
 };
 
-// ✅ LOGIN - ACTUALIZADO para tu estructura de respuesta
+//  LOGIN - ACTUALIZADO para tu estructura de respuesta
 export async function login(email, password) {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -103,7 +103,6 @@ export async function login(email, password) {
   }
 
   if (!response.ok) {
-    // TRADUCIR MENSAJES DE ERROR AL ESPAÑOL - ACTUALIZADO para tus mensajes
     const errorMessage = data.message || `Error ${response.status} en el login`;
     let translatedMessage = errorMessage;
 
@@ -127,19 +126,18 @@ export async function login(email, password) {
     throw new Error(translatedMessage);
   }
 
-  // ✅ ACTUALIZADO: Tu backend devuelve { success, message, data: { user, token, refreshToken } }
   if (!data.data || !data.data.token) {
     throw new Error("Estructura de respuesta inesperada del servidor");
   }
 
-  // ✅ GUARDAR AMBOS TOKENS
+  // GUARDAR AMBOS TOKENS
   setAuthTokens(data.data.token, data.data.refreshToken);
-  console.log("🔑 Tokens guardados");
+  console.log("Tokens guardados");
 
   return data.data;
 }
 
-// ✅ REGISTER - VERSIÓN PARA JSON (sin imagen)
+// REGISTER - VERSIÓN PARA JSON (sin imagen)
 export const register = async (userData) => {
   const response = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
@@ -164,7 +162,6 @@ export const register = async (userData) => {
   }
 
   if (!response.ok) {
-    // ✅ ACTUALIZADO: Traducir mensajes de error específicos de tu backend
     const errorMessage = data.message || `Error ${response.status} en el registro`;
     let translatedMessage = errorMessage;
 
@@ -189,59 +186,112 @@ export const register = async (userData) => {
   return data;
 };
 
-// ✅ REGISTER WITH IMAGE - VERSIÓN PARA FormData (con imagen)
+// REGISTER WITH IMAGE - VERSIÓN MEJORADA para FormData (con imagen)
 export const registerWithImage = async (formData) => {
-  const response = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    body: formData,
-    // No incluir Content-Type header, el navegador lo establecerá automáticamente con el boundary
-    ...fetchConfig
-  });
-
-  const responseText = await response.text();
-
-  if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
-    throw new Error("Error del servidor: respuesta HTML inesperada");
-  }
-
-  let data;
   try {
-    data = JSON.parse(responseText);
-  } catch (parseError) {
-    throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
-  }
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      body: formData,
+      ...fetchConfig
+    });
 
-  if (!response.ok) {
-    const errorMessage = data.message || `Error ${response.status} en el registro`;
-    let translatedMessage = errorMessage;
+    const responseText = await response.text();
+    console.log("📨 Respuesta del servidor:", responseText);
 
-    if (errorMessage.includes('User already exists') ||
-      errorMessage.includes('Email already exists')) {
-      translatedMessage = "El email ya está registrado.";
-    } else if (errorMessage.includes('Weak password') ||
-      errorMessage.includes('password length')) {
-      translatedMessage = "La contraseña debe tener al menos 6 caracteres.";
-    } else if (errorMessage.includes('Invalid email') ||
-      errorMessage.includes('email format')) {
-      translatedMessage = "El formato del email no es válido.";
-    } else if (errorMessage.includes('Invalid image') ||
-      errorMessage.includes('image format')) {
-      translatedMessage = "Formato de imagen no válido.";
-    } else if (errorMessage.includes('Image too large')) {
-      translatedMessage = "La imagen es demasiado grande.";
-    } else if (response.status === 400) {
-      translatedMessage = "Datos de registro incompletos o inválidos.";
-    } else if (response.status === 500) {
-      translatedMessage = "Error del servidor al registrar usuario.";
+    if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
+      throw new Error("Error del servidor: respuesta HTML inesperada");
     }
 
-    throw new Error(translatedMessage);
-  }
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("❌ Error parseando JSON:", parseError);
+      throw new Error(`Respuesta inválida del servidor: ${responseText.substring(0, 100)}`);
+    }
 
-  return data;
+    if (!response.ok) {
+      const errorMessage = data.message || data.error || `Error ${response.status} en el registro`;
+      let translatedMessage = errorMessage;
+
+      if (errorMessage.includes('User already exists') ||
+        errorMessage.includes('Email already exists') ||
+        errorMessage.includes('already exists')) {
+        translatedMessage = "El email ya está registrado. Por favor, usa otro email.";
+      } else if (errorMessage.includes('Weak password') ||
+        errorMessage.includes('password length') ||
+        errorMessage.includes('password must be')) {
+        translatedMessage = "La contraseña debe tener al menos 6 caracteres.";
+      } else if (errorMessage.includes('Invalid email') ||
+        errorMessage.includes('email format') ||
+        errorMessage.includes('valid email')) {
+        translatedMessage = "El formato del email no es válido.";
+      } else if (errorMessage.includes('Invalid image') ||
+        errorMessage.includes('image format') ||
+        errorMessage.includes('image type')) {
+        translatedMessage = "Formato de imagen no válido. Usa JPEG, PNG, GIF o WebP.";
+      } else if (errorMessage.includes('Image too large') ||
+        errorMessage.includes('file size')) {
+        translatedMessage = "La imagen es demasiado grande. Máximo 5MB.";
+      } else if (errorMessage.includes('required') ||
+        errorMessage.includes('missing')) {
+        translatedMessage = "Por favor, completa todos los campos obligatorios.";
+      } else if (response.status === 400) {
+        translatedMessage = "Datos de registro incompletos o inválidos.";
+      } else if (response.status === 500) {
+        translatedMessage = "Error interno del servidor. Por favor, intenta más tarde.";
+      }
+
+      throw new Error(translatedMessage);
+    }
+
+    console.log("✅ Registro exitoso:", data);
+    return data;
+
+  } catch (error) {
+    console.error("❌ Error en registerWithImage:", error);
+    
+    let errorMessage = error.message;
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      errorMessage = "Error de conexión. Verifica que el servidor esté ejecutándose y que tengas acceso a HTTPS://localhost:4000";
+    } else if (error.message.includes('certificate') || error.message.includes('SSL')) {
+      errorMessage = "Error de certificado SSL. En desarrollo, puedes ignorar los warnings de certificados auto-firmados.";
+    }
+    
+    throw new Error(errorMessage);
+  }
 };
 
-// ✅ REFRESH TOKEN - ACTUALIZADO
+//  Función auxiliar para validar campos del registro
+export const validateRegisterFields = (formData) => {
+  const errors = [];
+
+  if (!formData.first_name?.trim()) {
+    errors.push("El nombre es obligatorio");
+  }
+
+  if (!formData.email?.trim()) {
+    errors.push("El email es obligatorio");
+  } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    errors.push("El formato del email no es válido");
+  }
+
+  if (!formData.password) {
+    errors.push("La contraseña es obligatoria");
+  } else if (formData.password.length < 6) {
+    errors.push("La contraseña debe tener al menos 6 caracteres");
+  }
+
+  if (!formData.confirmPassword) {
+    errors.push("Confirma tu contraseña");
+  } else if (formData.password !== formData.confirmPassword) {
+    errors.push("Las contraseñas no coinciden");
+  }
+
+  return errors;
+};
+
+// REFRESH TOKEN - ACTUALIZADO
 export async function refreshAuthToken() {
   const refreshToken = getRefreshToken();
 
@@ -259,7 +309,6 @@ export async function refreshAuthToken() {
       ...fetchConfig
     });
 
-    // Si no existe el endpoint, manejamos el error
     if (response.status === 404) {
       throw new Error("Endpoint de refresh no disponible");
     }
@@ -277,7 +326,6 @@ export async function refreshAuthToken() {
       throw new Error("Respuesta inválida al refrescar token");
     }
 
-    // ✅ ACTUALIZADO: Asumiendo la misma estructura que login
     if (data.data && data.data.token) {
       setAuthTokens(data.data.token, refreshToken);
       console.log("✅ Token refrescado exitosamente");
@@ -291,7 +339,7 @@ export async function refreshAuthToken() {
   }
 }
 
-// ✅ AUTHENTICATED FETCH - ACTUALIZADO
+// AUTHENTICATED FETCH - ACTUALIZADO
 export async function authenticatedFetch(url, options = {}) {
   let token = getAuthToken();
 
@@ -304,25 +352,20 @@ export async function authenticatedFetch(url, options = {}) {
     }
   };
 
-  // Solo agregar Authorization si existe el token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
   let response = await fetch(url, config);
 
-  // Si el token expiró (401), intentar refrescar
   if (response.status === 401) {
     console.log("🔄 Token expirado, intentando refrescar...");
 
     try {
       const newToken = await refreshAuthToken();
-
-      // Reintentar la petición con el nuevo token
       config.headers.Authorization = `Bearer ${newToken}`;
       response = await fetch(url, config);
     } catch (refreshError) {
-      // Si el refresh falla, redirigir al login
       removeAuthTokens();
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
@@ -334,7 +377,7 @@ export async function authenticatedFetch(url, options = {}) {
   return response;
 }
 
-// ✅ GET CURRENT USER - CORREGIDO: Usar user_id del token
+// GET CURRENT USER - CORREGIDO: Usar user_id del token
 export const getCurrentUser = async () => {
   try {
     const token = getAuthToken();
@@ -342,7 +385,6 @@ export const getCurrentUser = async () => {
       throw new Error('No hay token de autenticación');
     }
 
-    // Decodificar el token para obtener el user_id
     const payload = JSON.parse(atob(token.split('.')[1]));
     const userId = payload.user_id;
 
@@ -353,7 +395,6 @@ export const getCurrentUser = async () => {
 
     console.log("🔍 [DEBUG] User ID del token:", userId, "Tipo:", typeof userId);
 
-    // ✅ Usar el endpoint existente /users/get-user/:id con el user_id real
     const response = await authenticatedFetch(`${API_URL}/users/get-user/${userId}`);
 
     if (!response.ok) {
@@ -368,33 +409,165 @@ export const getCurrentUser = async () => {
     throw error;
   }
 };
-
-// ✅ GET USERS - ACTUALIZADO
-export async function getUsers() {
-  const response = await authenticatedFetch(`${API_URL}/users`);
-
-  const responseText = await response.text();
-
-  if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
-    throw new Error("El servidor devolvió HTML en lugar de JSON");
-  }
-
-  let data;
+// funciones para gestion de usuarios
+// GET USERS - NUEVA FUNCIÓN PARA GESTIÓN DE USUARIOS
+export const getUsers = async () => {
   try {
-    data = JSON.parse(responseText);
-  } catch (parseError) {
-    throw new Error(`Respuesta no JSON: ${responseText.substring(0, 100)}`);
+    const response = await authenticatedFetch(`${API_URL}/users`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener usuarios');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error obteniendo usuarios:', error);
+    throw error;
   }
+};
 
-  if (!response.ok) {
-    const errorMessage = data.message || `Error ${response.status} al obtener usuarios`;
-    throw new Error(errorMessage);
+//  CREATE USER - NUEVA FUNCIÓN
+export const createUser = async (userData) => {
+  try {
+    // Separar nombre completo en partes
+    const nameParts = userData.name.split(' ');
+    const first_name = nameParts[0] || '';
+    const paternal_surname = nameParts[1] || '';
+    const maternal_surname = nameParts[2] || '';
+
+    const response = await authenticatedFetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      body: JSON.stringify({
+        first_name: first_name,
+        paternal_surname: paternal_surname,
+        maternal_surname: maternal_surname,
+        email: userData.email,
+        password: 'TempPassword123!', // Contraseña temporal
+        // Todos los nuevos usuarios se crean como "user" (role_id: 2)
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al crear usuario');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error creando usuario:', error);
+    throw error;
   }
+};
 
-  return data.data || data;
-}
+// UPDATE USER - NUEVA FUNCIÓN
+export const updateUser = async (userId, userData) => {
+  try {
+    // Separar nombre completo en partes
+    const nameParts = userData.name.split(' ');
+    const first_name = nameParts[0] || '';
+    const paternal_surname = nameParts[1] || '';
+    const maternal_surname = nameParts[2] || '';
 
-// ✅ Función para verificar el estado de la sesión
+    const response = await authenticatedFetch(`${API_URL}/users/update-profile/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        first_name: first_name,
+        paternal_surname: paternal_surname,
+        maternal_surname: maternal_surname,
+        email: userData.email
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al actualizar usuario');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error actualizando usuario:', error);
+    throw error;
+  }
+};
+
+// DELETE USER - NUEVA FUNCIÓN
+export const deleteUser = async (userId) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/users/${userId}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al eliminar usuario');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error eliminando usuario:', error);
+    throw error;
+  }
+};
+
+// UPDATE USER STATUS - NUEVA FUNCIÓN
+export const updateUserStatus = async (userId, isActive) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/users/update-status/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        is_active: isActive
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al actualizar estado del usuario');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error actualizando estado del usuario:', error);
+    throw error;
+  }
+};
+
+// UPDATE USER ROLE - NUEVA FUNCIÓN
+export const updateUserRole = async (userId, roleId) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/users/update-role/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        role_id: roleId
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al actualizar rol del usuario');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error actualizando rol del usuario:', error);
+    throw error;
+  }
+};
+
+// Función auxiliar para mapear role_id a nombre de rol
+export const getRoleName = (roleId) => {
+  const roleMap = {
+    1: 'Administrador',
+    2: 'Usuario'
+  };
+  return roleMap[roleId] || 'Usuario';
+};
+
+// Función para verificar el estado de la sesión
 export function checkAuthStatus() {
   const token = getAuthToken();
   const refreshToken = getRefreshToken();
@@ -409,13 +582,14 @@ export function checkAuthStatus() {
   };
 }
 
-// ✅ Función para cerrar sesión
+// Función para cerrar sesión
 export const logout = () => {
   removeAuthTokens();
   console.log("🔓 Sesión cerrada - tokens eliminados");
 };
 
-// ✅ Funciones para comentarios
+//  Funciones para comentarios
+// obtener comentarios
 export const getComments = async () => {
   try {
     const response = await authenticatedFetch(`${API_URL}/comment/comments`);
@@ -431,6 +605,8 @@ export const getComments = async () => {
     throw error;
   }
 };
+
+
 
 export const createComment = async (message) => {
   try {
@@ -487,7 +663,7 @@ export const deleteComment = async (commentId) => {
   }
 };
 
-// ✅ Función para actualizar imagen de perfil
+// Función para actualizar imagen de perfil
 export const updateProfileImage = async (userId, imageFile) => {
   try {
     const formData = new FormData();
@@ -514,15 +690,60 @@ export const updateProfileImage = async (userId, imageFile) => {
   }
 };
 
-// ✅ Función para obtener imagen de perfil
+// Función para obtener imagen de perfil
 export const getProfileImageUrl = (imagePath) => {
   if (!imagePath) return null;
   
-  // Si la imagen ya es una URL completa
   if (imagePath.startsWith('http')) {
     return imagePath;
   }
   
-  // Si es una ruta relativa, construir la URL completa
-  return `${API_URL}/images/${imagePath}`;
+  return `${API_URL}/uploads/profile/${imagePath}`;
+};
+
+// Función para manejar errores de red
+export const handleNetworkError = (error) => {
+  if (error.message.includes('Failed to fetch')) {
+    return {
+      type: 'network',
+      message: 'Error de conexión. Verifica tu conexión a internet y que el servidor esté funcionando.',
+      originalError: error
+    };
+  }
+  
+  if (error.message.includes('SSL') || error.message.includes('certificate')) {
+    return {
+      type: 'ssl',
+      message: 'Error de certificado SSL. En desarrollo, acepta el certificado auto-firmado del servidor.',
+      originalError: error
+    };
+  }
+  
+  return {
+    type: 'general',
+    message: error.message,
+    originalError: error
+  };
+};
+
+// Función para verificar la conexión con el servidor
+export const checkServerConnection = async () => {
+  try {
+    const response = await fetch(`${API_URL}/`, {
+      method: 'GET',
+      ...fetchConfig
+    });
+    
+    if (response.ok) {
+      return { connected: true, message: 'Conexión exitosa con el servidor' };
+    } else {
+      return { connected: false, message: `Servidor respondió con estado: ${response.status}` };
+    }
+  } catch (error) {
+    return { 
+      connected: false, 
+      message: 'No se pudo conectar con el servidor',
+      error: error.message 
+    };
+  }
 };

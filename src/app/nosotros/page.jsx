@@ -1,51 +1,102 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus } from "../../../services/api";
+import { removeAuthTokens, checkAuthStatus, getCurrentUser } from "../../../services/api";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
+import Image from "next/image";
+
+const getInitialFromName = (name) => {
+    if (!name) return 'U';
+    return name.charAt(0).toUpperCase();
+};
+
+const getColorFromId = (id) => {
+    const colors = [
+        'bg-green-500', 'bg-blue-500', 'bg-purple-500',
+        'bg-red-500', 'bg-yellow-500', 'bg-indigo-500'
+    ];
+    return colors[id % colors.length] || 'bg-gray-500';
+};
 
 export default function NosotrosPage() {
     const [userData, setUserData] = useState(null);
     const [isClient, setIsClient] = useState(false);
     const [activeSection, setActiveSection] = useState("mision");
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
         setIsClient(true);
-
-        const status = checkAuthStatus();
-        if (!status.isAuthenticated) {
-            router.push('/login');
-            return;
-        }
-
-        notificationService.init();
-        setUserData({
-            name: "Usuario AGROSIG",
-            email: status.tokens.accessToken ? "usuario@agrosig.com" : "Invitado"
-        });
+        initializePage();
     }, [router]);
 
-    const handleLogout = () => {
-        notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
-        removeAuthTokens();
-        router.push('/login');
+    const initializePage = async () => {
+        try {
+            console.log('Inicializando página de nosotros...');
+            
+            // Verificar si hay usuario autenticado (pero no redirigir si no lo hay)
+            const status = checkAuthStatus();
+            
+            if (status.isAuthenticated) {
+                console.log('Usuario autenticado, obteniendo datos...');
+                notificationService.init();
+
+                // Obtener datos del usuario actual
+                const currentUser = await getCurrentUser();
+                console.log('Datos del usuario desde API:', currentUser);
+
+                setUserData({
+                    name: currentUser.first_name || "Usuario AGROSIG",
+                    email: currentUser.email || "usuario@agrosig.com",
+                    role: "Usuario",
+                    userId: currentUser.id,
+                    profileImage: currentUser.profile_image || currentUser.avatar_url || null
+                });
+            } else {
+                console.log('Usuario no autenticado, mostrando página pública');
+                // No hacemos nada, la página se muestra sin datos de usuario
+            }
+
+        } catch (error) {
+            console.error('Error inicializando página:', error);
+            // No mostramos error para no interrumpir la experiencia del usuario
+        } finally {
+            setLoading(false);
+        }
     };
 
-    if (!isClient) {
+    const handleLogout = () => {
+        if (userData) {
+            notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
+            removeAuthTokens();
+            setUserData(null); // Limpiar datos de usuario
+            // No redirigimos para mantener al usuario en la página pública
+        }
+    };
+
+    // Componente para mostrar el avatar
+    const UserAvatar = ({ user, size = "w-8 h-8" }) => {
+        if (!user) return null;
+        
+        if (user.profileImage) {
+            return (
+                <img
+                    src={user.profileImage}
+                    alt={`Avatar de ${user.name}`}
+                    className={`${size} rounded-lg object-cover shadow-sm border border-gray-200`}
+                />
+            );
+        }
+
         return (
-            <div className="flex justify-center items-center h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-600 border-t-transparent mx-auto mb-4"></div>
-                    <div className="text-2xl font-bold text-green-800 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg">
-                        Cargando AGROSIG...
-                    </div>
-                </div>
+            <div className={`${size} ${getColorFromId(user.userId || 0)} rounded-lg flex items-center justify-center text-white font-semibold text-sm shadow-sm border border-gray-200`}>
+                {getInitialFromName(user.name)}
             </div>
         );
-    }
+    };
 
+    // Secciones de contenido
     const sections = {
         mision: {
             title: "Misión",
@@ -160,6 +211,23 @@ export default function NosotrosPage() {
             ]
         }
     };
+
+    // Loading state
+    if (!isClient || loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+                <Navigation userData={userData} onLogout={handleLogout} />
+                <div className="flex justify-center items-center h-96">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-transparent mx-auto mb-4"></div>
+                        <div className="text-2xl font-semibold text-slate-700 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg">
+                            Cargando...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50">
@@ -417,8 +485,6 @@ export default function NosotrosPage() {
                                     </div>
                                 ))}
                             </div>
-
-
                         </div>
                     )}
                 </div>
