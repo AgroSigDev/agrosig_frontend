@@ -14,7 +14,7 @@ import {
   registerWithImage,
   updateProfileImage,
   updateUserPassword
-} from "../../../services/api";
+} from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";

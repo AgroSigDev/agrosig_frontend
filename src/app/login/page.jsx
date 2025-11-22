@@ -1,7 +1,7 @@
 // app/login/page.js
 "use client";
 import { useState, useEffect } from "react";
-import { login, checkAuthStatus } from "../../../services/api";
+import { login, checkAuthStatus } from "../../../services/api/index";
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {

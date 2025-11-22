@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus, getCurrentUser } from "../../../services/api";
+import { removeAuthTokens, checkAuthStatus, getCurrentUser } from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";

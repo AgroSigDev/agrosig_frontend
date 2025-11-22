@@ -10,7 +10,7 @@ import {
   updateComment as updateCommentAPI,
   deleteComment as deleteCommentAPI,
   isAuthenticated
-} from "../../../services/api";
+} from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";

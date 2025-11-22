@@ -1,6 +1,6 @@
 "use client"; // indica que es un componente cliente
 import { useEffect, useState } from "react";
-import { getUsers, setAuthToken } from "../../../services/api";
+import { getUsers, setAuthToken } from "../../../services/api/index";
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState([]);

@@ -7,7 +7,7 @@ import {
     updateUserPassword,
     checkAuthStatus,
     removeAuthTokens
-} from "../../../services/api";
+} from "../../../services/api/index";
 import Navigation from "../../components/Navigation";
 import notificationService from "../../utils/notifications";
 

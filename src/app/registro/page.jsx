@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { registerWithImage, validateRegisterFields } from "../../../services/api";
+import { registerWithImage, validateRegisterFields } from "../../../services/api/index";
 
 export default function RegistroPage() {
   const [formData, setFormData] = useState({
