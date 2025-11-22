@@ -8,7 +8,7 @@ export default function UsuariosPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // ⚠️ Pon aquí tu token JWT válido
+    // Pon aquí tu token JWT válido
     setAuthToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlX2lkIjoyLCJpYXQiOjE3NTg5OTI4MDcsImV4cCI6MTc1OTAzNjAwN30.FNyyPtBV7MdH3qwEXZG-jQZJVZVmo2EtNKV7deG43Gw");
 
     getUsers()

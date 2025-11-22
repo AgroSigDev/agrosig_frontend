@@ -168,7 +168,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
       const token = getAuthToken();
       if (token) {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log("🔍 [isAdmin] Payload del token:", payload);
+        console.log("[isAdmin] Payload del token:", payload);
 
         if (payload.role_id === 1 || payload.role_id === "1") {
           console.log(" [isAdmin] ADMIN detectado por role_id en token JWT");
@@ -402,7 +402,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
             ))}
           </div>
 
-          {/* ✅ SECCIÓN MEJORADA: Maneja tanto usuarios autenticados como no autenticados */}
+          {/* SECCIÓN MEJORADA: Maneja tanto usuarios autenticados como no autenticados */}
           <div className="flex items-center" ref={userMenuRef}>
             {userData ? (
               <div className="relative">
@@ -417,19 +417,19 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                 >
                   <UserAvatar showDropdown={true} userData={userData} />
 
-                  {/* ✅ INFORMACIÓN DEL USUARIO MÁS DESTACADA */}
+                  {/* INFORMACIÓN DEL USUARIO MÁS DESTACADA */}
                   <div className="text-right">
-                    {/* ✅ NOMBRE COMPLETO MÁS GRANDE Y VISIBLE */}
+                    {/* NOMBRE COMPLETO MÁS GRANDE Y VISIBLE */}
                     <p className="text-sm font-bold text-gray-900 leading-tight">
                       {userInfo.fullName}
                     </p>
 
-                    {/* ✅ EMAIL VISIBLE SIEMPRE */}
+                    {/* EMAIL VISIBLE SIEMPRE */}
                     <p className="text-xs text-gray-600 mt-1">
                       {userInfo.email}
                     </p>
 
-                    {/* ✅ INFORMACIÓN ADICIONAL: Rol y Estado */}
+                    {/* INFORMACIÓN ADICIONAL: Rol y Estado */}
                     <div className="flex items-center justify-end space-x-2 mt-1">
                       <p className={clsx(
                         "text-xs font-medium capitalize px-2 py-0.5 rounded-full",
@@ -440,7 +440,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                         {userInfo.role}
                       </p>
 
-                      {/* ✅ INDICADOR VISUAL DE CONEXIÓN */}
+                      {/* INDICADOR VISUAL DE CONEXIÓN */}
                       <div className="flex items-center space-x-1">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                         <span className="text-xs text-gray-500">Conectado</span>
@@ -449,10 +449,10 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                   </div>
                 </button>
 
-                {/* ✅ DROPDOWN MENU MEJORADO con más información */}
+                {/* DROPDOWN MENU MEJORADO con más información */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200/80 backdrop-blur-sm py-2 z-50">
-                    {/* ✅ ENCABEZADO MEJORADO con más información */}
+                    {/* ENCABEZADO MEJORADO con más información */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
                         <UserAvatar size={12} userData={userData} />
@@ -464,7 +464,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                             {userInfo.email}
                           </p>
 
-                          {/* ✅ BADGE DE ROL MEJORADO */}
+                          {/* BADGE DE ROL MEJORADO */}
                           <div className={clsx(
                             "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2",
                             adminStatus
@@ -490,7 +490,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                         </div>
                       </div>
 
-                      {/* ✅ INFORMACIÓN ADICIONAL DE SESIÓN */}
+                      {/* INFORMACIÓN ADICIONAL DE SESIÓN */}
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <div className="flex justify-between text-xs text-gray-500">
                           <span>Sesión activa</span>

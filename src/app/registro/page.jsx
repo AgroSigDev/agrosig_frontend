@@ -21,7 +21,7 @@ export default function RegistroPage() {
   const fileInputRef = useRef(null);
   const router = useRouter();
 
-  // ✅ Componente de Alerta Personalizada (sin cambios)
+  // Componente de Alerta Personalizada (sin cambios)
   const CustomAlert = () => {
     if (!showAlert.show) return null;
 
@@ -165,8 +165,8 @@ export default function RegistroPage() {
         formDataToSend.append('image_user', profileImage);
       }
 
-      console.log("📤 Enviando datos de registro...");
-      console.log("📝 Datos:", {
+      console.log("Enviando datos de registro...");
+      console.log("Datos:", {
         first_name: formData.first_name,
         paternal_surname: formData.paternal_surname,
         maternal_surname: formData.maternal_surname,
@@ -177,7 +177,7 @@ export default function RegistroPage() {
       // Usar la función mejorada registerWithImage
       const result = await registerWithImage(formDataToSend);
 
-      // ✅ ÉXITO - MOSTRAR ALERTA DE ÉXITO
+      //  ÉXITO - MOSTRAR ALERTA DE ÉXITO
       setShowAlert({
         show: true,
         type: 'success',
@@ -200,9 +200,9 @@ export default function RegistroPage() {
       }
       
     } catch (err) {
-      console.error("❌ Error en registro:", err);
+      console.error("Error en registro:", err);
       
-      // ✅ MOSTRAR ALERTA DE ERROR MEJORADA
+      // MOSTRAR ALERTA DE ERROR MEJORADA
       let errorMessage = err.message || "Error al crear la cuenta. Por favor, intenta nuevamente.";
       
       // Manejar errores específicos de red/CORS
@@ -230,7 +230,7 @@ export default function RegistroPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 p-4 relative overflow-hidden">
-      {/* ✅ Renderizar la alerta personalizada */}
+      {/* Renderizar la alerta personalizada */}
       <CustomAlert />
       
       {/* Elementos decorativos de fondo */}
@@ -289,7 +289,7 @@ export default function RegistroPage() {
 
           {/* Formulario de Registro (sin cambios en la UI) */}
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* ✅ Sección de Imagen de Perfil (sin cambios) */}
+            {/* Sección de Imagen de Perfil (sin cambios) */}
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 {/* Preview de la imagen */}

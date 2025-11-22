@@ -70,7 +70,7 @@ const UserModal = ({
     }
   }, [isOpen, user]);
 
-  // ✅ Manejar selección de imagen
+  // Manejar selección de imagen
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -97,7 +97,7 @@ const UserModal = ({
     }
   };
 
-  // ✅ Eliminar imagen seleccionada
+  // Eliminar imagen seleccionada
   const handleRemoveImage = () => {
     setProfileImage(null);
     setImagePreview(user?.profileImage || null);
@@ -115,7 +115,7 @@ const UserModal = ({
     if (error) setError(null);
   };
 
-  // ✅ Toggle para mostrar/ocultar campos de contraseña en edición
+  // Toggle para mostrar/ocultar campos de contraseña en edición
   const togglePasswordFields = () => {
     setShowPasswordFields(!showPasswordFields);
     if (showPasswordFields) {
@@ -128,7 +128,7 @@ const UserModal = ({
     }
   };
 
-  // ✅ Validación de campos mejorada - 8 CARACTERES MÍNIMO
+  // Validación de campos mejorada - 8 CARACTERES MÍNIMO
   const validateFields = () => {
     const errors = [];
 
@@ -202,7 +202,7 @@ const UserModal = ({
       updatePassword: user && showPasswordFields && formData.oldPassword && formData.password // Solo actualizar si hay datos
     };
 
-    console.log("📤 Enviando datos del modal:", submitData);
+    console.log(" Enviando datos del modal:", submitData);
     onSubmit(submitData);
   };
 
@@ -264,7 +264,7 @@ const UserModal = ({
         <div className="p-8 bg-white">
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              {/* ✅ Sección de Imagen de Perfil */}
+              {/* Sección de Imagen de Perfil */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   {imagePreview ? (

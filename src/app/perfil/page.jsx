@@ -68,7 +68,7 @@ export default function ProfilePage() {
                 });
 
             } catch (error) {
-                console.error('❌ Error cargando perfil:', error);
+                console.error('Error cargando perfil:', error);
                 notificationService.showErrorNotification('Error al cargar el perfil: ' + error.message);
 
                 if (error.message.includes('autenticación') || error.message.includes('token')) {
@@ -199,7 +199,7 @@ export default function ProfilePage() {
             }
 
         } catch (error) {
-            console.error('❌ Error guardando perfil:', error);
+            console.error('Error guardando perfil:', error);
             notificationService.showErrorNotification('Error al actualizar el perfil: ' + error.message);
         } finally {
             setLoading(false);

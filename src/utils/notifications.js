@@ -20,7 +20,7 @@ class NotificationService {
 
   async init() {
     if (!this.isSupported) {
-      console.warn('❌ Las notificaciones no son soportadas en este navegador');
+      console.warn(' Las notificaciones no son soportadas en este navegador');
       return false;
     }
 
@@ -29,7 +29,7 @@ class NotificationService {
         scope: '/'
       });
       
-      console.log('✅ Service Worker registrado correctamente');
+      console.log('Service Worker registrado correctamente');
       return true;
     } catch (error) {
       console.error(' Error registrando Service Worker:', error);
@@ -203,8 +203,8 @@ class NotificationService {
   // Notificación de fallback
   showFallbackNotification(title, message, type) {
     if (typeof window !== 'undefined') {
-      const emoji = type === 'success' ? '✅' : 
-                   type === 'error' ? '❌' : 'ℹ️';
+      const emoji = type === 'success' ? 'excelente' : 
+                   type === 'error' ? 'error' : 'info';
       
       // Puedes usar alert o console.log como fallback
       console.log(`${emoji} ${title}: ${message}`);

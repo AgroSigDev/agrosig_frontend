@@ -23,7 +23,7 @@ export default function LoginPage() {
       router.push('/dashboard');
     }
 
-    // ✅ VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO
+    // VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO
     const message = searchParams.get('message');
     if (message) {
       setShowSuccessAlert(true);
@@ -33,7 +33,7 @@ export default function LoginPage() {
     }
   }, [router, searchParams]);
 
-  // ✅ Componente de Alerta de Éxito en Login
+  // Componente de Alerta de Éxito en Login
   const SuccessAlert = () => {
     if (!showSuccessAlert) return null;
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
     }
   };
 
-  // ✅ FUNCIÓN PARA REDIRIGIR AL REGISTRO
+  // FUNCIÓN PARA REDIRIGIR AL REGISTRO
   const handleCreateAccount = () => {
     router.push('/registro');
   };
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 p-4 relative overflow-hidden">
-      {/* ✅ Renderizar alerta de éxito */}
+      {/* Renderizar alerta de éxito */}
       <SuccessAlert />
       
       {/* Elementos decorativos de fondo con hojas */}
@@ -326,7 +326,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* ✅ BOTÓN MODIFICADO - Ahora con funcionalidad de redirección */}
+                {/* BOTÓN MODIFICADO - Ahora con funcionalidad de redirección */}
                 <button
                   onClick={handleCreateAccount}
                   className="w-full py-3.5 text-center border border-emerald-300 text-emerald-700 rounded-xl font-semibold text-sm hover:bg-emerald-50 hover:border-emerald-400 transition-all duration-200 shadow-sm hover:shadow-md group cursor-pointer"

@@ -92,7 +92,7 @@ export default function GestionUsuarioPage() {
       console.log('🔄 Inicializando página de gestión de usuarios...');
       const status = checkAuthStatus();
       if (!status.isAuthenticated) {
-        console.log('❌ No autenticado, redirigiendo...');
+        console.log('No autenticado, redirigiendo...');
         router.push('/login');
         return;
       }
@@ -100,7 +100,7 @@ export default function GestionUsuarioPage() {
       notificationService.init();
 
       // Obtener datos del usuario actual
-      console.log('👤 Obteniendo usuario actual...');
+      console.log('Obteniendo usuario actual...');
       const currentUser = await getCurrentUser();
 
       setUserData({
@@ -114,7 +114,7 @@ export default function GestionUsuarioPage() {
       // Cargar usuarios 
       await cargarUsuarios();
     } catch (error) {
-      console.error('❌ Error inicializando página:', error);
+      console.error('Error inicializando página:', error);
       notificationService.showErrorNotification('Error al cargar los usuarios: ' + error.message);
     } finally {
       setLoading(false);
@@ -126,7 +126,7 @@ export default function GestionUsuarioPage() {
       setLoading(true);
       const usuariosData = await getUsers();
 
-      console.log("📥 Usuarios cargados del backend:", usuariosData);
+      console.log("Usuarios cargados del backend:", usuariosData);
 
       // Transformar los datos del backend al formato que espera tu frontend
       const usuariosTransformados = usuariosData.map(usuario => {
@@ -161,9 +161,9 @@ export default function GestionUsuarioPage() {
       });
 
       setUsuarios(usuariosTransformados);
-      console.log(`✅ ${usuariosTransformados.length} usuarios cargados correctamente`);
+      console.log(`${usuariosTransformados.length} usuarios cargados correctamente`);
     } catch (error) {
-      console.error('❌ Error cargando usuarios:', error);
+      console.error('Error cargando usuarios:', error);
       notificationService.showErrorNotification('Error al cargar usuarios: ' + error.message);
     } finally {
       setLoading(false);
@@ -192,7 +192,7 @@ const handleAgregarUsuario = async (formData) => {
 
     //  El formData ya viene como FormData desde el modal
     // Solo necesitamos asegurarnos de que tenga todos los campos necesarios
-    console.log("📤 Creando usuario con FormData:");
+    console.log("Creando usuario con FormData:");
     for (let [key, value] of formData.entries()) {
       console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
     }
@@ -200,7 +200,7 @@ const handleAgregarUsuario = async (formData) => {
     // Crear usuario en el backend usando registerWithImage
     const nuevoUsuario = await registerWithImage(formData);
 
-    console.log("✅ Usuario creado:", nuevoUsuario);
+    console.log("Usuario creado:", nuevoUsuario);
 
     // Crear URL de preview de la imagen si existe
     let imagePreviewUrl = null;
@@ -246,7 +246,7 @@ const handleAgregarUsuario = async (formData) => {
     }, 1000);
 
   } catch (error) {
-    console.error('❌ Error agregando usuario:', error);
+    console.error('Error agregando usuario:', error);
     notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
   } finally {
     setSending(false);
@@ -258,19 +258,19 @@ const handleAgregarUsuario = async (formData) => {
 const handleEditarUsuario = async (formData) => {
   try {
     setSending(true);
-    console.log("🔄 Iniciando actualización de usuario:", {
+    console.log("Iniciando actualización de usuario:", {
       usuarioId: usuarioEditando.id
     });
 
-    // ✅ Verificar si es FormData (tiene imagen) u objeto normal
+    // Verificar si es FormData (tiene imagen) u objeto normal
     if (formData instanceof FormData) {
-      console.log("📤 Usando FormData para actualización con imagen");
+      console.log("Usando FormData para actualización con imagen");
       
       // Para FormData, usar la nueva función
       const result = await updateUserWithImage(usuarioEditando.id, formData);
-      console.log("✅ Usuario actualizado con imagen:", result);
+      console.log("Usuario actualizado con imagen:", result);
     } else {
-      console.log("📤 Usando objeto JSON para actualización sin imagen");
+      console.log("Usando objeto JSON para actualización sin imagen");
       
       // Para objeto normal, usar la función existente
       const updateData = {
@@ -285,7 +285,7 @@ const handleEditarUsuario = async (formData) => {
 
     // Si se debe actualizar la contraseña (solo si se proporcionaron los campos)
     if (formData.get && formData.get('oldPassword') && formData.get('password')) {
-      console.log("🔐 Actualizando contraseña");
+      console.log("Actualizando contraseña");
       await updateUserPassword(
         usuarioEditando.id,
         formData.get('oldPassword'),
@@ -293,7 +293,7 @@ const handleEditarUsuario = async (formData) => {
         formData.get('confirmPassword')
       );
     } else if (formData.oldPassword && formData.password) {
-      console.log("🔐 Actualizando contraseña (objeto)");
+      console.log("Actualizando contraseña (objeto)");
       await updateUserPassword(
         usuarioEditando.id,
         formData.oldPassword,
@@ -344,7 +344,7 @@ const handleEditarUsuario = async (formData) => {
     }, 500);
 
   } catch (error) {
-    console.error('❌ Error editando usuario:', error);
+    console.error('Error editando usuario:', error);
 
     // Mostrar mensaje de error específico
     let errorMessage = error.message;
@@ -370,7 +370,7 @@ const handleEditarUsuario = async (formData) => {
 
   // Abrir modal de edición - CORREGIDO
   const abrirModalEdicion = (usuario) => {
-    console.log("📝 Abriendo modal de edición para:", usuario);
+    console.log("Abriendo modal de edición para:", usuario);
 
     const usuarioParaEditar = {
       ...usuario,
@@ -411,7 +411,7 @@ const handleEditarUsuario = async (formData) => {
       setUpdatingStatus(prev => ({ ...prev, [usuarioId]: true }));
 
       const isActive = nuevoEstado === 'Activo';
-      console.log("🔄 Cambiando estado:", { usuarioId, isActive });
+      console.log("Cambiando estado:", { usuarioId, isActive });
 
       await updateUserStatus(usuarioId, isActive);
 
@@ -431,7 +431,7 @@ const handleEditarUsuario = async (formData) => {
       );
 
     } catch (error) {
-      console.error('❌ Error cambiando estado del usuario:', error);
+      console.error('Error cambiando estado del usuario:', error);
       notificationService.showErrorNotification('Error al cambiar estado del usuario: ' + error.message);
     } finally {
       // Quitar el estado de carga

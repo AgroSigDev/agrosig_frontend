@@ -70,7 +70,7 @@ export default function ComentariosPage() {
 
   const initializePage = async () => {
     try {
-      console.log('🔍 Inicializando página...');
+      console.log('Inicializando página...');
       
       // Verificar autenticación sin redirigir
       const status = checkAuthStatus();
@@ -81,7 +81,7 @@ export default function ComentariosPage() {
 
       if (authenticated) {
         // Obtener datos del usuario actual solo si está autenticado
-        console.log('🔍 Usuario autenticado, obteniendo datos...');
+        console.log('Usuario autenticado, obteniendo datos...');
         try {
           const currentUser = await getCurrentUser();
           setUserData({
@@ -92,20 +92,20 @@ export default function ComentariosPage() {
             profileImage: currentUser.profile_image || currentUser.avatar_url || null
           });
         } catch (userError) {
-          console.error('❌ Error obteniendo datos del usuario:', userError);
+          console.error('Error obteniendo datos del usuario:', userError);
           // Si hay error al obtener datos del usuario, considerar como no autenticado
           setUserAuthenticated(false);
           removeAuthTokens();
         }
       } else {
-        console.log('👤 Usuario no autenticado - modo vista');
+        console.log('Usuario no autenticado - modo vista');
         setUserData(null);
       }
 
       // Cargar comentarios (siempre, sin importar autenticación)
       await cargarComentarios();
     } catch (error) {
-      console.error('❌ Error inicializando página:', error);
+      console.error('Error inicializando página:', error);
       notificationService.showErrorNotification('Error al cargar los comentarios: ' + error.message);
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export default function ComentariosPage() {
   const cargarComentarios = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Cargando comentarios...');
+      console.log('Cargando comentarios...');
       const commentsData = await fetchComments();
 
       if (!Array.isArray(commentsData)) {
@@ -143,7 +143,7 @@ export default function ComentariosPage() {
 
       setComentarios(comentariosFormateados);
     } catch (error) {
-      console.error('❌ Error cargando comentarios:', error);
+      console.error('Error cargando comentarios:', error);
       notificationService.showErrorNotification('Error al cargar comentarios: ' + error.message);
     } finally {
       setLoading(false);
@@ -185,14 +185,14 @@ export default function ComentariosPage() {
 
     try {
       setSending(true);
-      console.log('🔍 Creando comentario:', nuevoComentario);
+      console.log('Creando comentario:', nuevoComentario);
       await createCommentAPI(nuevoComentario);
       setNuevoComentario("");
       notificationService.showSuccessNotification('¡Tu comentario ha sido publicado!');
 
       await cargarComentarios();
     } catch (error) {
-      console.error('❌ Error creando comentario:', error);
+      console.error('Error creando comentario:', error);
       notificationService.showErrorNotification('Error al publicar el comentario: ' + error.message);
     } finally {
       setSending(false);
@@ -211,7 +211,7 @@ export default function ComentariosPage() {
     }
 
     try {
-      console.log('🔍 Editando comentario:', comentarioId, textoEditado);
+      console.log('Editando comentario:', comentarioId, textoEditado);
       await updateCommentAPI(comentarioId, textoEditado);
       setEditandoComentario(null);
       setTextoEditado("");
@@ -234,14 +234,14 @@ export default function ComentariosPage() {
       const confirmed = await notificationService.showDeleteConfirmation();
 
       if (confirmed) {
-        console.log('🔍 Eliminando comentario:', comentarioId);
+        console.log('Eliminando comentario:', comentarioId);
         await deleteCommentAPI(comentarioId);
         notificationService.showSuccessNotification('Comentario eliminado');
 
         await cargarComentarios();
       }
     } catch (error) {
-      console.error('❌ Error eliminando comentario:', error);
+      console.error('Error eliminando comentario:', error);
       notificationService.showErrorNotification('Error al eliminar el comentario: ' + error.message);
     }
   };

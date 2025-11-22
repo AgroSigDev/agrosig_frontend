@@ -51,7 +51,7 @@ export default function DashboardPage() {
     try {
       console.log('Inicializando página de dashboard...');
       
-      // ✅ MODIFICADO: No verificar autenticación forzosa
+      // MODIFICADO: No verificar autenticación forzosa
       const status = checkAuthStatus();
       
       if (status.isAuthenticated) {
@@ -233,7 +233,7 @@ export default function DashboardPage() {
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
                 
-                {/* ✅ BOTÓN DE LOGIN PARA USUARIOS NO AUTENTICADOS */}
+                {/* BOTÓN DE LOGIN PARA USUARIOS NO AUTENTICADOS */}
                 {!userData && (
                   <button
                     onClick={handleLogin}
@@ -390,7 +390,7 @@ export default function DashboardPage() {
               <span className="text-2xl">↓</span>
             </button>
             
-            {/* ✅ BOTÓN DE REGISTRO PARA USUARIOS NO AUTENTICADOS */}
+            {/* BOTÓN DE REGISTRO PARA USUARIOS NO AUTENTICADOS */}
             {!userData && (
               <button
                 onClick={() => router.push('/registro')}

@@ -34,10 +34,10 @@ export default function NosotrosPage() {
     const initializePage = async () => {
         try {
             console.log('Inicializando página de nosotros...');
-            
+
             // Verificar si hay usuario autenticado (pero no redirigir si no lo hay)
             const status = checkAuthStatus();
-            
+
             if (status.isAuthenticated) {
                 console.log('Usuario autenticado, obteniendo datos...');
                 notificationService.init();
@@ -78,7 +78,7 @@ export default function NosotrosPage() {
     // Componente para mostrar el avatar
     const UserAvatar = ({ user, size = "w-8 h-8" }) => {
         if (!user) return null;
-        
+
         if (user.profileImage) {
             return (
                 <img
@@ -266,8 +266,8 @@ export default function NosotrosPage() {
                                 key={key}
                                 onClick={() => setActiveSection(key)}
                                 className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 border ${activeSection === key
-                                        ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200'
-                                        : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-green-300'
+                                    ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200'
+                                    : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-green-300'
                                     }`}
                             >
                                 <div className={`${activeSection === key ? 'text-white' : 'text-green-600'}`}>
