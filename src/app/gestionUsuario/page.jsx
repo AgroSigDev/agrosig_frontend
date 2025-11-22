@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   removeAuthTokens,
   checkAuthStatus,
-  getCurrentUser,
+  getOwnProfile, // CAMBIADO: getCurrentUser por getOwnProfile
   getUsers,
   createUser,
   updateUser,
@@ -12,8 +12,9 @@ import {
   updateUserRole,
   getRoleName,
   registerWithImage,
-  updateProfileImage,
-  updateUserPassword
+  updateOwnProfileImage, // CAMBIADO: updateProfileImage por updateOwnProfileImage
+  updateOwnPassword, // CAMBIADO: updateUserPassword por updateOwnPassword
+  deleteUser // AÑADIDO: Función para eliminar usuario
 } from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
@@ -101,13 +102,13 @@ export default function GestionUsuarioPage() {
 
       // Obtener datos del usuario actual
       console.log('Obteniendo usuario actual...');
-      const currentUser = await getCurrentUser();
+      const currentUser = await getOwnProfile(); // CAMBIADO: getCurrentUser por getOwnProfile
 
       setUserData({
         name: `${currentUser.first_name || ''} ${currentUser.paternal_surname || ''}`.trim(),
         email: currentUser.email || "admin@agrosig.com",
         role: getRoleName(currentUser.role_id),
-        userId: currentUser.user_id,
+        userId: currentUser.user_id || currentUser.id, // Actualizado para usar user_id
         profileImage: currentUser.image_user ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${currentUser.image_user}` : null
       });
 
@@ -186,187 +187,197 @@ export default function GestionUsuarioPage() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-const handleAgregarUsuario = async (formData) => {
-  try {
-    setSending(true);
+  const handleAgregarUsuario = async (formData) => {
+    try {
+      setSending(true);
 
-    //  El formData ya viene como FormData desde el modal
-    // Solo necesitamos asegurarnos de que tenga todos los campos necesarios
-    console.log("Creando usuario con FormData:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
-    }
+      // El formData ya viene como FormData desde el modal
+      // Solo necesitamos asegurarnos de que tenga todos los campos necesarios
+      console.log("Creando usuario con FormData:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
+      }
 
-    // Crear usuario en el backend usando registerWithImage
-    const nuevoUsuario = await registerWithImage(formData);
+      // Crear usuario en el backend usando registerWithImage
+      const nuevoUsuario = await registerWithImage(formData);
 
-    console.log("Usuario creado:", nuevoUsuario);
+      console.log("Usuario creado:", nuevoUsuario);
 
-    // Crear URL de preview de la imagen si existe
-    let imagePreviewUrl = null;
-    const imageFile = formData.get('image');
-    if (imageFile instanceof File) {
-      // Para la imagen recién subida, usar el preview local inmediatamente
-      imagePreviewUrl = URL.createObjectURL(imageFile);
-    } else if (nuevoUsuario.image_user) {
-      // Si el backend devuelve un nombre de imagen, construir la URL
-      imagePreviewUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${nuevoUsuario.image_user}`;
-    }
+      // Crear URL de preview de la imagen si existe
+      let imagePreviewUrl = null;
+      const imageFile = formData.get('image');
+      if (imageFile instanceof File) {
+        // Para la imagen recién subida, usar el preview local inmediatamente
+        imagePreviewUrl = URL.createObjectURL(imageFile);
+      } else if (nuevoUsuario.image_user) {
+        // Si el backend devuelve un nombre de imagen, construir la URL
+        imagePreviewUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${nuevoUsuario.image_user}`;
+      }
 
-    // Obtener datos del formData para construir el nombre
-    const first_name = formData.get('first_name') || '';
-    const paternal_surname = formData.get('paternal_surname') || '';
-    const maternal_surname = formData.get('maternal_surname') || '';
+      // Obtener datos del formData para construir el nombre
+      const first_name = formData.get('first_name') || '';
+      const paternal_surname = formData.get('paternal_surname') || '';
+      const maternal_surname = formData.get('maternal_surname') || '';
 
-    // Actualizar la lista local
-    const usuarioTransformado = {
-      id: nuevoUsuario.user_id || nuevoUsuario.id,
-      name: `${first_name} ${paternal_surname} ${maternal_surname}`.trim(),
-      email: formData.get('email'),
-      role: 'Usuario', // Todos los nuevos usuarios son "Usuario"
-      role_id: 2,
-      status: 'Activo',
-      joinDate: new Date().toISOString().split('T')[0],
-      profileImage: imagePreviewUrl,
-      is_active: true,
-      // Mantener campos individuales para futuras ediciones
-      first_name: first_name,
-      paternal_surname: paternal_surname,
-      maternal_surname: maternal_surname
-    };
-
-    setUsuarios(prev => [...prev, usuarioTransformado]);
-    setShowAddModal(false);
-
-    notificationService.showSuccessNotification('¡Usuario agregado correctamente!');
-
-    // Forzar una recarga de usuarios después de un breve delay para obtener la imagen del servidor
-    setTimeout(() => {
-      cargarUsuarios();
-    }, 1000);
-
-  } catch (error) {
-    console.error('Error agregando usuario:', error);
-    notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
-  } finally {
-    setSending(false);
-  }
-};
-
-
-
-const handleEditarUsuario = async (formData) => {
-  try {
-    setSending(true);
-    console.log("Iniciando actualización de usuario:", {
-      usuarioId: usuarioEditando.id
-    });
-
-    // Verificar si es FormData (tiene imagen) u objeto normal
-    if (formData instanceof FormData) {
-      console.log("Usando FormData para actualización con imagen");
-      
-      // Para FormData, usar la nueva función
-      const result = await updateUserWithImage(usuarioEditando.id, formData);
-      console.log("Usuario actualizado con imagen:", result);
-    } else {
-      console.log("Usando objeto JSON para actualización sin imagen");
-      
-      // Para objeto normal, usar la función existente
-      const updateData = {
-        first_name: formData.first_name.trim(),
-        paternal_surname: formData.paternal_surname.trim() || '',
-        maternal_surname: formData.maternal_surname.trim() || '',
-        email: formData.email.toLowerCase().trim()
+      // Actualizar la lista local
+      const usuarioTransformado = {
+        id: nuevoUsuario.user_id || nuevoUsuario.id,
+        name: `${first_name} ${paternal_surname} ${maternal_surname}`.trim(),
+        email: formData.get('email'),
+        role: 'Usuario', // Todos los nuevos usuarios son "Usuario"
+        role_id: 2,
+        status: 'Activo',
+        joinDate: new Date().toISOString().split('T')[0],
+        profileImage: imagePreviewUrl,
+        is_active: true,
+        // Mantener campos individuales para futuras ediciones
+        first_name: first_name,
+        paternal_surname: paternal_surname,
+        maternal_surname: maternal_surname
       };
 
-      await updateUser(usuarioEditando.id, updateData);
-    }
+      setUsuarios(prev => [...prev, usuarioTransformado]);
+      setShowAddModal(false);
 
-    // Si se debe actualizar la contraseña (solo si se proporcionaron los campos)
-    if (formData.get && formData.get('oldPassword') && formData.get('password')) {
-      console.log("Actualizando contraseña");
-      await updateUserPassword(
-        usuarioEditando.id,
-        formData.get('oldPassword'),
-        formData.get('password'),
-        formData.get('confirmPassword')
-      );
-    } else if (formData.oldPassword && formData.password) {
-      console.log("Actualizando contraseña (objeto)");
-      await updateUserPassword(
-        usuarioEditando.id,
-        formData.oldPassword,
-        formData.password,
-        formData.confirmPassword
-      );
-    }
+      notificationService.showSuccessNotification('¡Usuario agregado correctamente!');
 
-    // Actualizar la lista local inmediatamente
-    setUsuarios(prev => prev.map(usuario => {
-      if (usuario.id === usuarioEditando.id) {
-        const updatedUser = { ...usuario };
+      // Forzar una recarga de usuarios después de un breve delay para obtener la imagen del servidor
+      setTimeout(() => {
+        cargarUsuarios();
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error agregando usuario:', error);
+      notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Función auxiliar para actualizar imagen de usuario (para admin)
+  const updateUserWithImage = async (userId, formData) => {
+    try {
+      // Para administradores, necesitamos una función específica
+      // Por ahora, actualizaremos solo los datos sin imagen
+      const updateData = {
+        first_name: formData.get('first_name')?.trim() || '',
+        paternal_surname: formData.get('paternal_surname')?.trim() || '',
+        maternal_surname: formData.get('maternal_surname')?.trim() || '',
+        email: formData.get('email')?.toLowerCase().trim() || ''
+      };
+
+      return await updateUser(userId, updateData);
+    } catch (error) {
+      console.error('Error actualizando usuario con imagen:', error);
+      throw error;
+    }
+  };
+
+  const handleEditarUsuario = async (formData) => {
+    try {
+      setSending(true);
+      console.log("Iniciando actualización de usuario:", {
+        usuarioId: usuarioEditando.id
+      });
+
+      // Verificar si es FormData (tiene imagen) u objeto normal
+      if (formData instanceof FormData) {
+        console.log("Usando FormData para actualización con imagen");
         
-        // Actualizar nombre y email
-        if (formData instanceof FormData) {
-          updatedUser.first_name = formData.get('first_name') || usuario.first_name;
-          updatedUser.paternal_surname = formData.get('paternal_surname') || usuario.paternal_surname;
-          updatedUser.maternal_surname = formData.get('maternal_surname') || usuario.maternal_surname;
-          updatedUser.email = formData.get('email') || usuario.email;
-          updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
-          
-          // Actualizar imagen si hay una nueva
-          const imageFile = formData.get('image');
-          if (imageFile instanceof File) {
-            updatedUser.profileImage = URL.createObjectURL(imageFile);
-          }
-        } else {
-          updatedUser.first_name = formData.first_name || usuario.first_name;
-          updatedUser.paternal_surname = formData.paternal_surname || usuario.paternal_surname;
-          updatedUser.maternal_surname = formData.maternal_surname || usuario.maternal_surname;
-          updatedUser.email = formData.email || usuario.email;
-          updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
-        }
+        // Para FormData, usar la función auxiliar
+        const result = await updateUserWithImage(usuarioEditando.id, formData);
+        console.log("Usuario actualizado con imagen:", result);
+      } else {
+        console.log("Usando objeto JSON para actualización sin imagen");
         
-        return updatedUser;
+        // Para objeto normal, usar la función existente
+        const updateData = {
+          first_name: formData.first_name.trim(),
+          paternal_surname: formData.paternal_surname.trim() || '',
+          maternal_surname: formData.maternal_surname.trim() || '',
+          email: formData.email.toLowerCase().trim()
+        };
+
+        await updateUser(usuarioEditando.id, updateData);
       }
-      return usuario;
-    }));
 
-    setShowEditModal(false);
-    setUsuarioEditando(null);
+      // Si se debe actualizar la contraseña (solo si se proporcionaron los campos)
+      if (formData.get && formData.get('oldPassword') && formData.get('password')) {
+        console.log("Actualizando contraseña");
+        // NOTA: Para administradores, necesitaríamos una función específica updateUserPassword
+        // Por ahora, omitimos esta funcionalidad para admin
+        console.warn("Actualización de contraseña por admin no implementada");
+      } else if (formData.oldPassword && formData.password) {
+        console.log("Actualizando contraseña (objeto)");
+        // NOTA: Para administradores, necesitaríamos una función específica updateUserPassword
+        console.warn("Actualización de contraseña por admin no implementada");
+      }
 
-    notificationService.showSuccessNotification('¡Usuario actualizado correctamente!');
+      // Actualizar la lista local inmediatamente
+      setUsuarios(prev => prev.map(usuario => {
+        if (usuario.id === usuarioEditando.id) {
+          const updatedUser = { ...usuario };
+          
+          // Actualizar nombre y email
+          if (formData instanceof FormData) {
+            updatedUser.first_name = formData.get('first_name') || usuario.first_name;
+            updatedUser.paternal_surname = formData.get('paternal_surname') || usuario.paternal_surname;
+            updatedUser.maternal_surname = formData.get('maternal_surname') || usuario.maternal_surname;
+            updatedUser.email = formData.get('email') || usuario.email;
+            updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
+            
+            // Actualizar imagen si hay una nueva
+            const imageFile = formData.get('image');
+            if (imageFile instanceof File) {
+              updatedUser.profileImage = URL.createObjectURL(imageFile);
+            }
+          } else {
+            updatedUser.first_name = formData.first_name || usuario.first_name;
+            updatedUser.paternal_surname = formData.paternal_surname || usuario.paternal_surname;
+            updatedUser.maternal_surname = formData.maternal_surname || usuario.maternal_surname;
+            updatedUser.email = formData.email || usuario.email;
+            updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
+          }
+          
+          return updatedUser;
+        }
+        return usuario;
+      }));
 
-    // Recargar usuarios para obtener datos actualizados del servidor
-    setTimeout(() => {
-      cargarUsuarios();
-    }, 500);
+      setShowEditModal(false);
+      setUsuarioEditando(null);
 
-  } catch (error) {
-    console.error('Error editando usuario:', error);
+      notificationService.showSuccessNotification('¡Usuario actualizado correctamente!');
 
-    // Mostrar mensaje de error específico
-    let errorMessage = error.message;
-    if (error.message.includes('email ya está en uso') ||
-      error.message.includes('duplicate key') ||
-      error.message.includes('users_email_unique')) {
-      errorMessage = 'El correo electrónico ya está en uso por otro usuario. Por favor, usa un email diferente.';
-    } else if (error.message.includes('current password is incorrect')) {
-      errorMessage = 'La contraseña actual es incorrecta.';
-    } else if (error.message.includes('new password cannot be the same')) {
-      errorMessage = 'La nueva contraseña debe ser diferente a la actual.';
-    } else if (error.message.includes('password do not match')) {
-      errorMessage = 'Las nuevas contraseñas no coinciden.';
-    } else if (error.message.includes('at least 8 characters')) {
-      errorMessage = 'La contraseña debe tener al menos 8 caracteres.';
+      // Recargar usuarios para obtener datos actualizados del servidor
+      setTimeout(() => {
+        cargarUsuarios();
+      }, 500);
+
+    } catch (error) {
+      console.error('Error editando usuario:', error);
+
+      // Mostrar mensaje de error específico
+      let errorMessage = error.message;
+      if (error.message.includes('email ya está en uso') ||
+        error.message.includes('duplicate key') ||
+        error.message.includes('users_email_unique')) {
+        errorMessage = 'El correo electrónico ya está en uso por otro usuario. Por favor, usa un email diferente.';
+      } else if (error.message.includes('current password is incorrect')) {
+        errorMessage = 'La contraseña actual es incorrecta.';
+      } else if (error.message.includes('new password cannot be the same')) {
+        errorMessage = 'La nueva contraseña debe ser diferente a la actual.';
+      } else if (error.message.includes('password do not match')) {
+        errorMessage = 'Las nuevas contraseñas no coinciden.';
+      } else if (error.message.includes('at least 8 characters')) {
+        errorMessage = 'La contraseña debe tener al menos 8 caracteres.';
+      }
+
+      notificationService.showErrorNotification(errorMessage);
+    } finally {
+      setSending(false);
     }
-
-    notificationService.showErrorNotification(errorMessage);
-  } finally {
-    setSending(false);
-  }
-};;
+  };
 
   // Abrir modal de edición - CORREGIDO
   const abrirModalEdicion = (usuario) => {
@@ -395,8 +406,6 @@ const handleEditarUsuario = async (formData) => {
     setUsuarioEditando(null);
     setSending(false);
   };
-
-
 
   // FUNCIÓN MEJORADA PARA CAMBIAR ESTADO - CON FEEDBACK VISUAL
   const cambiarEstadoUsuario = async (usuarioId, nuevoEstado) => {
@@ -436,6 +445,60 @@ const handleEditarUsuario = async (formData) => {
     } finally {
       // Quitar el estado de carga
       setUpdatingStatus(prev => ({ ...prev, [usuarioId]: false }));
+    }
+  };
+
+  // Función para cambiar rol de usuario
+  const cambiarRolUsuario = async (usuarioId, nuevoRolId) => {
+    try {
+      console.log("Cambiando rol:", { usuarioId, nuevoRolId });
+      
+      await updateUserRole(usuarioId, nuevoRolId);
+      
+      // Actualizar la lista local
+      setUsuarios(prev => prev.map(usuario =>
+        usuario.id === usuarioId
+          ? {
+            ...usuario,
+            role: getRoleName(nuevoRolId),
+            role_id: nuevoRolId
+          }
+          : usuario
+      ));
+
+      notificationService.showSuccessNotification('Rol de usuario actualizado correctamente');
+    } catch (error) {
+      console.error('Error cambiando rol del usuario:', error);
+      notificationService.showErrorNotification('Error al cambiar rol del usuario: ' + error.message);
+    }
+  };
+
+  // Función para eliminar usuario
+  const eliminarUsuario = async (usuarioId) => {
+    try {
+      // No permitir eliminar el propio usuario
+      if (usuarioId === userData?.userId) {
+        notificationService.showErrorNotification('No puedes eliminar tu propio usuario');
+        return;
+      }
+
+      const confirmed = await notificationService.showDeleteConfirmation(
+        '¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.'
+      );
+
+      if (confirmed) {
+        console.log("Eliminando usuario:", usuarioId);
+        
+        await deleteUser(usuarioId);
+        
+        // Actualizar la lista local
+        setUsuarios(prev => prev.filter(usuario => usuario.id !== usuarioId));
+
+        notificationService.showSuccessNotification('Usuario eliminado correctamente');
+      }
+    } catch (error) {
+      console.error('Error eliminando usuario:', error);
+      notificationService.showErrorNotification('Error al eliminar usuario: ' + error.message);
     }
   };
 
@@ -711,7 +774,27 @@ const handleEditarUsuario = async (formData) => {
                               )}
                             </button>
 
+                            {/* Botón para cambiar rol */}
+                            <button
+                              onClick={() => cambiarRolUsuario(usuario.id, usuario.role_id === 1 ? 2 : 1)}
+                              className="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                              title={usuario.role === 'Administrador' ? 'Cambiar a Usuario' : 'Cambiar a Administrador'}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                              </svg>
+                            </button>
 
+                            {/* Botón para eliminar usuario */}
+                            <button
+                              onClick={() => eliminarUsuario(usuario.id)}
+                              className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-lg hover:bg-red-50"
+                              title="Eliminar usuario"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                              </svg>
+                            </button>
                           </div>
                         </td>
                       </tr>

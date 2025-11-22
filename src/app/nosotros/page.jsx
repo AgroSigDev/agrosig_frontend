@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus, getCurrentUser } from "../../../services/api/index";
+import { removeAuthTokens, checkAuthStatus, getOwnProfile, isAuthenticated } from "../../../services/api/index"; // Actualizado: getCurrentUser por getOwnProfile
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
@@ -36,22 +36,22 @@ export default function NosotrosPage() {
             console.log('Inicializando página de nosotros...');
 
             // Verificar si hay usuario autenticado (pero no redirigir si no lo hay)
-            const status = checkAuthStatus();
+            const authenticated = isAuthenticated(); // Actualizado: usar isAuthenticated
 
-            if (status.isAuthenticated) {
+            if (authenticated) {
                 console.log('Usuario autenticado, obteniendo datos...');
                 notificationService.init();
 
                 // Obtener datos del usuario actual
-                const currentUser = await getCurrentUser();
+                const currentUser = await getOwnProfile(); // Actualizado: getCurrentUser por getOwnProfile
                 console.log('Datos del usuario desde API:', currentUser);
 
                 setUserData({
                     name: currentUser.first_name || "Usuario AGROSIG",
                     email: currentUser.email || "usuario@agrosig.com",
                     role: "Usuario",
-                    userId: currentUser.id,
-                    profileImage: currentUser.profile_image || currentUser.avatar_url || null
+                    userId: currentUser.user_id || currentUser.id, // Actualizado: usar user_id
+                    profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null // Actualizado: image_user
                 });
             } else {
                 console.log('Usuario no autenticado, mostrando página pública');
@@ -184,7 +184,7 @@ export default function NosotrosPage() {
                     color: "from-purple-500 to-pink-500",
                     icon: (
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                     )
                 },

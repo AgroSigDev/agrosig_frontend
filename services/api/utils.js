@@ -1,14 +1,12 @@
 // services/api/utils.js - CONFIGURACIÓN Y UTILIDADES (SOLO USO INTERNO)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
 // Configuración para desarrollo con certificados auto-firmados
 const fetchConfig = {
-  ...(typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && {
-    mode: 'cors',
-    credentials: 'include'
-  })
+  mode: 'cors',
+  credentials: 'include'
 };
 
 // Función para manejar errores de red
@@ -17,14 +15,6 @@ export const handleNetworkError = (error) => {
     return {
       type: 'network',
       message: 'Error de conexión. Verifica tu conexión a internet y que el servidor esté funcionando.',
-      originalError: error
-    };
-  }
-
-  if (error.message.includes('SSL') || error.message.includes('certificate')) {
-    return {
-      type: 'ssl',
-      message: 'Error de certificado SSL. En desarrollo, acepta el certificado auto-firmado del servidor.',
       originalError: error
     };
   }

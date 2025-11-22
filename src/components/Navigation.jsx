@@ -4,7 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import clsx from "clsx";
 import notificationService from "../utils/notifications";
-import { getProfileImageUrl, getAuthToken } from "../../services/api";
+import { 
+  getProfileImageUrl, 
+  getAuthToken,
+  logout,
+  checkAuthStatus 
+} from "../../services/api";
 
 const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -68,9 +73,27 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     notificationService.showSuccessNotification(`¡${pageName} estará disponible pronto!`);
   };
 
+  // FUNCIÓN MEJORADA: Manejo de logout
   const handleLogout = async () => {
     const confirmed = await notificationService.showLogoutConfirmation();
-    if (confirmed && onLogout) onLogout();
+    if (confirmed) {
+      try {
+        // Llamar a la función de logout del API
+        await logout();
+        
+        // Ejecutar callback personalizado si existe
+        if (onLogout) {
+          onLogout();
+        } else {
+          // Redirigir a login por defecto
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error("Error durante logout:", error);
+        // Fallback: redirigir incluso si hay error
+        router.push('/login');
+      }
+    }
   };
 
   const handleLoginClick = () => {
@@ -136,7 +159,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     return name ? name[0].toUpperCase() : userData.email?.[0].toUpperCase() || "U";
   };
 
-  //  FUNCIÓN CORREGIDA: Verificar admin de forma robusta
+  // FUNCIÓN CORREGIDA: Verificar admin de forma robusta
   const isAdmin = () => {
     if (!userData) {
       console.log(" [isAdmin] userData no disponible");

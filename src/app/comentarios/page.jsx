@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   removeAuthTokens,
   checkAuthStatus,
-  getCurrentUser,
+  getOwnProfile, // CAMBIADO: getCurrentUser por getOwnProfile
   getComments as fetchComments,
   createComment as createCommentAPI,
   updateComment as updateCommentAPI,
@@ -83,13 +83,16 @@ export default function ComentariosPage() {
         // Obtener datos del usuario actual solo si está autenticado
         console.log('Usuario autenticado, obteniendo datos...');
         try {
-          const currentUser = await getCurrentUser();
+          // CAMBIADO: Usar getOwnProfile en lugar de getCurrentUser
+          const currentUser = await getOwnProfile();
+          console.log('Datos del usuario obtenidos:', currentUser);
+          
           setUserData({
             name: currentUser.first_name || "Usuario AGROSIG",
             email: currentUser.email || "usuario@agrosig.com",
             role: "Usuario Premium",
-            userId: currentUser.user_id,
-            profileImage: currentUser.profile_image || currentUser.avatar_url || null
+            userId: currentUser.user_id || currentUser.id, // Usar user_id del nuevo endpoint
+            profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null
           });
         } catch (userError) {
           console.error('Error obteniendo datos del usuario:', userError);
@@ -129,7 +132,7 @@ export default function ComentariosPage() {
           id: comment.user_id,
           nombre: comment.first_name || 'Usuario',
           rol: "Miembro AGROSIG",
-          profileImage: comment.profile_image || comment.avatar_url || null,
+          profileImage: comment.image_user || comment.profile_image || comment.avatar_url || null, // Actualizado: image_user
           online: true
         },
         texto: comment.message,
