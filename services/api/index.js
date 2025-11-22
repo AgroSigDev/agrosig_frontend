@@ -1,4 +1,4 @@
-//archivo unico que importan las vistas
+// services/api/index.js - Archivo único que importan las vistas
 
 // Re-exportar TODAS las funciones desde los módulos internos
 
@@ -30,20 +30,29 @@ export {
   refreshAuthToken,
   authenticatedFetch,
   checkAuthStatus,
-  logout,
-  getCurrentUser
+  logout
 } from './auth';
 
-// Gestión de usuarios
+// Gestión de usuarios - EXPORTACIONES ACTUALIZADAS
 export {
+  // Funciones para administradores (gestión de usuarios)
   getUsers,
   createUser,
   updateUser,
   updateUserStatus,
-  updateUserPassword,
-  updateProfileImage,
+  updateUserRole,
+  deleteUser,
   getUserById,
-  checkAdminPermissions
+  
+  // Funciones para usuarios normales (gestión de perfil propio)
+  getOwnProfile,
+  updateOwnProfile,
+  updateOwnPassword,
+  updateOwnProfileImage,
+  
+  // Utilidades
+  checkAdminPermissions,
+  getUserService
 } from './users';
 
 // Gestión de comentarios

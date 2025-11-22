@@ -1,10 +1,10 @@
 // services/api/auth.js - AUTENTICACIÓN (SOLO USO INTERNO)
-import { 
-  API_URL, 
-  ACCESS_TOKEN_KEY, 
-  REFRESH_TOKEN_KEY, 
+import {
+  API_URL,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
   fetchConfig,
-  handleNetworkError 
+  handleNetworkError
 } from './utils';
 
 // Guardar ambos tokens
@@ -292,13 +292,18 @@ export async function refreshAuthToken() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${refreshToken}`
+        "x-refresh-token": refreshToken
       },
       ...fetchConfig
     });
 
     if (response.status === 404) {
-      throw new Error("Endpoint de refresh no disponible");
+      console.log("Endpoint de refresh no disponible, cerrando sesión...");
+      removeAuthTokens();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+      throw new Error("Sesión expirada");
     }
 
     const responseText = await response.text();
@@ -373,19 +378,10 @@ export const getCurrentUser = async () => {
       throw new Error('No hay token de autenticación');
     }
 
-    //  DECODIFICAR TOKEN CORRECTAMENTE
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const userId = payload.user_id;
+    console.log("[DEBUG] Obteniendo perfil propio...");
 
-    console.log("[DEBUG] Token payload completo:", payload);
-    console.log("[DEBUG] User ID del token:", userId, "Tipo:", typeof userId);
-
-    if (!userId) {
-      console.error('[DEBUG] No se encontró user_id en el token. Campos disponibles:', Object.keys(payload));
-      throw new Error('No se pudo obtener el ID del usuario del token');
-    }
-
-    const response = await authenticatedFetch(`${API_URL}/users/get-user/${userId}`);
+    // USAR ENDPOINT DE PERFIL PROPIO EN LUGAR DE GET-USER
+    const response = await authenticatedFetch(`${API_URL}/users/profile/me`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -393,6 +389,8 @@ export const getCurrentUser = async () => {
     }
 
     const data = await response.json();
+
+    console.log("[DEBUG] Perfil propio obtenido:", data.data);
     return data.data || data;
   } catch (error) {
     console.error('Error obteniendo usuario actual:', error);

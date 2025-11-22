@@ -21,7 +21,7 @@ export default function RegistroPage() {
   const fileInputRef = useRef(null);
   const router = useRouter();
 
-  // Componente de Alerta Personalizada (sin cambios)
+  // Componente de Alerta Personalizada
   const CustomAlert = () => {
     if (!showAlert.show) return null;
 
@@ -90,7 +90,7 @@ export default function RegistroPage() {
     );
   };
 
-  // ✅ Manejar selección de imagen (sin cambios)
+  // Manejar selección de imagen
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -119,7 +119,7 @@ export default function RegistroPage() {
     }
   };
 
-  // ✅ Eliminar imagen seleccionada (sin cambios)
+  // Eliminar imagen seleccionada
   const handleRemoveImage = () => {
     setProfileImage(null);
     setImagePreview(null);
@@ -160,9 +160,9 @@ export default function RegistroPage() {
       formDataToSend.append('email', formData.email.toLowerCase().trim());
       formDataToSend.append('password', formData.password);
       
-      // Agregar imagen si existe
+      // ✅ CORREGIDO: Usar 'profile' en lugar de 'image_user'
       if (profileImage) {
-        formDataToSend.append('image_user', profileImage);
+        formDataToSend.append('profile', profileImage);
       }
 
       console.log("Enviando datos de registro...");
@@ -171,13 +171,14 @@ export default function RegistroPage() {
         paternal_surname: formData.paternal_surname,
         maternal_surname: formData.maternal_surname,
         email: formData.email,
-        hasImage: !!profileImage
+        hasImage: !!profileImage,
+        imageField: 'profile'
       });
 
       // Usar la función mejorada registerWithImage
       const result = await registerWithImage(formDataToSend);
 
-      //  ÉXITO - MOSTRAR ALERTA DE ÉXITO
+      // ÉXITO - MOSTRAR ALERTA DE ÉXITO
       setShowAlert({
         show: true,
         type: 'success',
@@ -205,11 +206,21 @@ export default function RegistroPage() {
       // MOSTRAR ALERTA DE ERROR MEJORADA
       let errorMessage = err.message || "Error al crear la cuenta. Por favor, intenta nuevamente.";
       
-      // Manejar errores específicos de red/CORS
+      // Manejar errores específicos
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
         errorMessage = "Error de conexión. Verifica que el servidor esté ejecutándose y que tengas acceso a HTTPS://localhost:4000";
       } else if (err.message.includes('certificate') || err.message.includes('SSL')) {
         errorMessage = "Error de certificado SSL. En desarrollo, puedes ignorar los warnings de certificados auto-firmados.";
+      } else if (err.message.includes('User already exists') || err.message.includes('Email already exists')) {
+        errorMessage = "El correo electrónico ya está registrado. Por favor, usa otro email.";
+      } else if (err.message.includes('Weak password') || err.message.includes('password length')) {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres.";
+      } else if (err.message.includes('Invalid email') || err.message.includes('email format')) {
+        errorMessage = "El formato del email no es válido.";
+      } else if (err.message.includes('Invalid image') || err.message.includes('image format')) {
+        errorMessage = "Formato de imagen no válido. Usa JPEG, PNG, GIF o WebP.";
+      } else if (err.message.includes('Image too large') || err.message.includes('file size')) {
+        errorMessage = "La imagen es demasiado grande. Máximo 5MB.";
       }
       
       setShowAlert({
@@ -242,7 +253,7 @@ export default function RegistroPage() {
 
       <div className="w-full max-w-2xl mx-auto relative z-10">
         <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl p-8 md:p-12 border border-emerald-200/60">
-          {/* Header (sin cambios) */}
+          {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
               <div 
@@ -287,9 +298,9 @@ export default function RegistroPage() {
             </p>
           </div>
 
-          {/* Formulario de Registro (sin cambios en la UI) */}
+          {/* Formulario de Registro */}
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Sección de Imagen de Perfil (sin cambios) */}
+            {/* Sección de Imagen de Perfil */}
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 {/* Preview de la imagen */}

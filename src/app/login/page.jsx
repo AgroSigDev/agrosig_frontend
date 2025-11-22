@@ -1,7 +1,7 @@
 // app/login/page.js
 "use client";
 import { useState, useEffect } from "react";
-import { login, checkAuthStatus } from "../../../services/api/index";
+import { login, checkAuthStatus, isAuthenticated } from "../../../services/api/index"; // Añadido isAuthenticated
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
@@ -18,8 +18,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     setIsClient(true);
-    const status = checkAuthStatus();
-    if (status.isAuthenticated) {
+    
+    // VERIFICAR AUTENTICACIÓN USANDO LA NUEVA FUNCIÓN
+    const authenticated = isAuthenticated();
+    if (authenticated) {
       router.push('/dashboard');
     }
 
@@ -92,10 +94,31 @@ export default function LoginPage() {
     try {
       setError(null);
       setLoading(true);
+      
+      // USAR LA NUEVA FUNCIÓN DE LOGIN ACTUALIZADA
       await login(email, password);
+      
+      // Redirigir al dashboard después del login exitoso
       router.push('/dashboard');
+      
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.");
+      console.error('Error en login:', err);
+      
+      // Manejar errores específicos de la nueva función de login
+      let errorMessage = err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.";
+      
+      // Traducir mensajes de error específicos si es necesario
+      if (errorMessage.includes('User not found')) {
+        errorMessage = "Usuario no encontrado. Verifica tu email.";
+      } else if (errorMessage.includes('Invalid password')) {
+        errorMessage = "Contraseña incorrecta. Intenta nuevamente.";
+      } else if (errorMessage.includes('User is not active')) {
+        errorMessage = "Usuario inactivo. Contacta al administrador.";
+      } else if (errorMessage.includes('The email is already linked to this Google account')) {
+        errorMessage = "El email está vinculado a una cuenta de Google.";
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

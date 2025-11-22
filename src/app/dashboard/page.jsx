@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus, getCurrentUser } from "../../../services/api/index";
+import { removeAuthTokens, checkAuthStatus, getOwnProfile } from "../../../services/api/index"; // Cambiado getCurrentUser por getOwnProfile
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
@@ -60,18 +60,19 @@ export default function DashboardPage() {
 
         // Obtener datos del usuario actual si está autenticado
         try {
-          const currentUser = await getCurrentUser();
+          // CAMBIADO: Usar getOwnProfile en lugar de getCurrentUser
+          const currentUser = await getOwnProfile();
           console.log('Datos del usuario desde API:', currentUser);
 
           setUserData({
             name: currentUser.first_name || "Administrador AGROSIG",
             email: currentUser.email || "admin@agrosig.com",
             role: "Administrador",
-            userId: currentUser.id,
-            profileImage: currentUser.profile_image || currentUser.avatar_url || null
+            userId: currentUser.user_id || currentUser.id, // Usar user_id del nuevo endpoint
+            profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null
           });
         } catch (userError) {
-          console.log('No se pudieron cargar datos del usuario, continuando sin autenticación');
+          console.log('No se pudieron cargar datos del usuario, continuando sin autenticación:', userError);
         }
       } else {
         console.log('Usuario no autenticado, mostrando dashboard público');

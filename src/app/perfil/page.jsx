@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import {
-    getCurrentUser,
-    updateUser,
-    updateUserPassword,
+    getOwnProfile, // CAMBIADO: getCurrentUser por getOwnProfile
+    updateOwnProfile, // CAMBIADO: updateUser por updateOwnProfile
+    updateOwnPassword, // CAMBIADO: updateUserPassword por updateOwnPassword
     checkAuthStatus,
-    removeAuthTokens
+    removeAuthTokens,
+    isAuthenticated // AÑADIDO: para verificación simplificada
 } from "../../../services/api/index";
 import Navigation from "../../components/Navigation";
 import notificationService from "../../utils/notifications";
@@ -34,14 +35,18 @@ export default function ProfilePage() {
             try {
                 setInitialLoading(true);
 
-                const authStatus = checkAuthStatus();
-                if (!authStatus.isAuthenticated) {
+                // Actualizado: usar isAuthenticated para verificación más simple
+                const authenticated = isAuthenticated();
+                if (!authenticated) {
                     notificationService.showErrorNotification('Debes iniciar sesión para ver tu perfil');
                     router.push('/login');
                     return;
                 }
 
-                const currentUser = await getCurrentUser();
+                // Actualizado: usar getOwnProfile en lugar de getCurrentUser
+                const currentUser = await getOwnProfile();
+                console.log('Datos del usuario obtenidos:', currentUser);
+                
                 const userId = currentUser.user_id || currentUser.id;
                 const userRole = currentUser.role_name ||
                     (currentUser.role_id === 1 ? "Administrador" : "Usuario");
@@ -54,7 +59,7 @@ export default function ProfilePage() {
                     role: userRole,
                     role_id: currentUser.role_id,
                     userId: userId,
-                    image_user: currentUser.image_user
+                    image_user: currentUser.image_user || currentUser.profile_image || null // Actualizado: image_user
                 });
 
                 setFormData({
@@ -161,19 +166,25 @@ export default function ProfilePage() {
             if (formData.maternal_surname.trim() !== '') updateData.maternal_surname = formData.maternal_surname;
             if (formData.email.trim() !== '') updateData.email = formData.email;
 
+            // Actualizar perfil si hay cambios
             if (Object.keys(updateData).length > 0) {
-                await updateUser(userData.userId, updateData);
+                console.log('Actualizando perfil con datos:', updateData);
+                // Actualizado: usar updateOwnProfile en lugar de updateUser
+                await updateOwnProfile(updateData);
             }
 
+            // Actualizar contraseña si se proporcionaron los campos
             if (showPasswordFields && formData.oldPassword && formData.password && formData.confirmPassword) {
-                await updateUserPassword(
-                    userData.userId,
+                console.log('Actualizando contraseña');
+                // Actualizado: usar updateOwnPassword en lugar de updateUserPassword
+                await updateOwnPassword(
                     formData.oldPassword,
                     formData.password,
                     formData.confirmPassword
                 );
             }
 
+            // Actualizar datos locales
             setUserData(prev => ({
                 ...prev,
                 first_name: formData.first_name || prev.first_name,
@@ -200,7 +211,25 @@ export default function ProfilePage() {
 
         } catch (error) {
             console.error('Error guardando perfil:', error);
-            notificationService.showErrorNotification('Error al actualizar el perfil: ' + error.message);
+            
+            // Manejar errores específicos
+            let errorMessage = 'Error al actualizar el perfil: ' + error.message;
+            
+            if (error.message.includes('email ya está en uso') || 
+                error.message.includes('duplicate key') ||
+                error.message.includes('users_email_unique')) {
+                errorMessage = 'El correo electrónico ya está en uso por otro usuario.';
+            } else if (error.message.includes('current password is incorrect')) {
+                errorMessage = 'La contraseña actual es incorrecta.';
+            } else if (error.message.includes('new password cannot be the same')) {
+                errorMessage = 'La nueva contraseña debe ser diferente a la actual.';
+            } else if (error.message.includes('password do not match')) {
+                errorMessage = 'Las nuevas contraseñas no coinciden.';
+            } else if (error.message.includes('at least 8 characters')) {
+                errorMessage = 'La contraseña debe tener al menos 8 caracteres.';
+            }
+            
+            notificationService.showErrorNotification(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -276,7 +305,6 @@ export default function ProfilePage() {
             </div>
         );
     }
-
 
     return (
         <div className="min-h-screen bg-gray-50">

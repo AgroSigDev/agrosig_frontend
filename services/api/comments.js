@@ -28,7 +28,8 @@ export const createComment = async (message) => {
     });
 
     if (!response.ok) {
-      throw new Error('Error al crear comentario');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al crear comentario');
     }
 
     const data = await response.json();
@@ -48,7 +49,8 @@ export const updateComment = async (commentId, message) => {
     });
 
     if (!response.ok) {
-      throw new Error('Error al actualizar comentario');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al actualizar comentario');
     }
 
     const data = await response.json();
@@ -67,7 +69,8 @@ export const deleteComment = async (commentId) => {
     });
 
     if (!response.ok) {
-      throw new Error('Error al eliminar comentario');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al eliminar comentario');
     }
 
     return true;
