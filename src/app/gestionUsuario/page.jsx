@@ -187,50 +187,74 @@ export default function GestionUsuarioPage() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
+  // Reemplaza la función handleAgregarUsuario existente con esta versión mejorada
   const handleAgregarUsuario = async (formData) => {
     try {
       setSending(true);
 
-      // El formData ya viene como FormData desde el modal
-      // Solo necesitamos asegurarnos de que tenga todos los campos necesarios
-      console.log("Creando usuario con FormData:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
+      // Verificar si formData es un objeto FormData
+      const isFormData = formData instanceof FormData;
+
+      if (isFormData) {
+        // Si es FormData, podemos usar entries()
+        console.log("Creando usuario con FormData:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
+        }
+      } else {
+        // Si es un objeto regular, mostrarlo directamente
+        console.log("Creando usuario con objeto:", formData);
       }
 
-      // Crear usuario en el backend usando registerWithImage
-      const nuevoUsuario = await registerWithImage(formData);
+      // Crear un nuevo FormData para enviar al servidor
+      const formDataToSend = new FormData();
+
+      // Agregar los campos al FormData
+      if (isFormData) {
+        // Si ya es FormData, clonarlo
+        for (let [key, value] of formData.entries()) {
+          formDataToSend.append(key, value);
+        }
+      } else {
+        // Si es un objeto regular, convertirlo a FormData
+        Object.entries(formData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            formDataToSend.append(key, value);
+          }
+        });
+      }
+
+      // Llamar a la API para crear el usuario
+      const nuevoUsuario = await registerWithImage(formDataToSend);
 
       console.log("Usuario creado:", nuevoUsuario);
 
       // Crear URL de preview de la imagen si existe
       let imagePreviewUrl = null;
-      const imageFile = formData.get('image');
+      const imageFile = isFormData ? formData.get('profileImage') : formData.profileImage;
+
       if (imageFile instanceof File) {
-        // Para la imagen recién subida, usar el preview local inmediatamente
         imagePreviewUrl = URL.createObjectURL(imageFile);
       } else if (nuevoUsuario.image_user) {
-        // Si el backend devuelve un nombre de imagen, construir la URL
         imagePreviewUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${nuevoUsuario.image_user}`;
       }
 
       // Obtener datos del formData para construir el nombre
-      const first_name = formData.get('first_name') || '';
-      const paternal_surname = formData.get('paternal_surname') || '';
-      const maternal_surname = formData.get('maternal_surname') || '';
+      const first_name = isFormData ? formData.get('first_name') || '' : formData.first_name || '';
+      const paternal_surname = isFormData ? formData.get('paternal_surname') || '' : formData.paternal_surname || '';
+      const maternal_surname = isFormData ? formData.get('maternal_surname') || '' : formData.maternal_surname || '';
 
       // Actualizar la lista local
       const usuarioTransformado = {
         id: nuevoUsuario.user_id || nuevoUsuario.id,
         name: `${first_name} ${paternal_surname} ${maternal_surname}`.trim(),
-        email: formData.get('email'),
-        role: 'Usuario', // Todos los nuevos usuarios son "Usuario"
+        email: isFormData ? formData.get('email') : formData.email,
+        role: 'Usuario',
         role_id: 2,
         status: 'Activo',
         joinDate: new Date().toISOString().split('T')[0],
         profileImage: imagePreviewUrl,
         is_active: true,
-        // Mantener campos individuales para futuras ediciones
         first_name: first_name,
         paternal_surname: paternal_surname,
         maternal_surname: maternal_surname
@@ -238,17 +262,16 @@ export default function GestionUsuarioPage() {
 
       setUsuarios(prev => [...prev, usuarioTransformado]);
       setShowAddModal(false);
-
       notificationService.showSuccessNotification('¡Usuario agregado correctamente!');
 
-      // Forzar una recarga de usuarios después de un breve delay para obtener la imagen del servidor
+      // Recargar usuarios después de un breve retraso
       setTimeout(() => {
         cargarUsuarios();
       }, 1000);
 
     } catch (error) {
       console.error('Error agregando usuario:', error);
-      notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
+      notificationService.showErrorNotification('Error al agregar usuario: ' + (error.message || 'Error desconocido'));
     } finally {
       setSending(false);
     }
@@ -283,13 +306,13 @@ export default function GestionUsuarioPage() {
       // Verificar si es FormData (tiene imagen) u objeto normal
       if (formData instanceof FormData) {
         console.log("Usando FormData para actualización con imagen");
-        
+
         // Para FormData, usar la función auxiliar
         const result = await updateUserWithImage(usuarioEditando.id, formData);
         console.log("Usuario actualizado con imagen:", result);
       } else {
         console.log("Usando objeto JSON para actualización sin imagen");
-        
+
         // Para objeto normal, usar la función existente
         const updateData = {
           first_name: formData.first_name.trim(),
@@ -317,7 +340,7 @@ export default function GestionUsuarioPage() {
       setUsuarios(prev => prev.map(usuario => {
         if (usuario.id === usuarioEditando.id) {
           const updatedUser = { ...usuario };
-          
+
           // Actualizar nombre y email
           if (formData instanceof FormData) {
             updatedUser.first_name = formData.get('first_name') || usuario.first_name;
@@ -325,7 +348,7 @@ export default function GestionUsuarioPage() {
             updatedUser.maternal_surname = formData.get('maternal_surname') || usuario.maternal_surname;
             updatedUser.email = formData.get('email') || usuario.email;
             updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
-            
+
             // Actualizar imagen si hay una nueva
             const imageFile = formData.get('image');
             if (imageFile instanceof File) {
@@ -338,7 +361,7 @@ export default function GestionUsuarioPage() {
             updatedUser.email = formData.email || usuario.email;
             updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
           }
-          
+
           return updatedUser;
         }
         return usuario;
@@ -452,9 +475,9 @@ export default function GestionUsuarioPage() {
   const cambiarRolUsuario = async (usuarioId, nuevoRolId) => {
     try {
       console.log("Cambiando rol:", { usuarioId, nuevoRolId });
-      
+
       await updateUserRole(usuarioId, nuevoRolId);
-      
+
       // Actualizar la lista local
       setUsuarios(prev => prev.map(usuario =>
         usuario.id === usuarioId
@@ -488,9 +511,9 @@ export default function GestionUsuarioPage() {
 
       if (confirmed) {
         console.log("Eliminando usuario:", usuarioId);
-        
+
         await deleteUser(usuarioId);
-        
+
         // Actualizar la lista local
         setUsuarios(prev => prev.filter(usuario => usuario.id !== usuarioId));
 
