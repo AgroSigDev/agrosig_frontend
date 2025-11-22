@@ -1,4 +1,4 @@
-// services/api.js - COMPLETO Y ACTUALIZADO
+// services/api.js - COMPLETO Y CORREGIDO
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:4000";
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -61,13 +61,13 @@ export const debugAuthToken = () => {
   try {
     const parts = token.split('.');
     console.log("🔍 [DEBUG] Token tiene", parts.length, "partes");
-    
+
     const payload = JSON.parse(atob(parts[1]));
     console.log("🔍 [DEBUG] Contenido del token JWT:", payload);
     console.log("🔍 [DEBUG] user_id:", payload.user_id, "Tipo:", typeof payload.user_id);
     console.log("🔍 [DEBUG] role_id:", payload.role_id, "Tipo:", typeof payload.role_id);
     console.log("🔍 [DEBUG] Todos los campos:", Object.keys(payload));
-    
+
     return payload;
   } catch (error) {
     console.error("❌ Error decodificando token:", error);
@@ -250,14 +250,14 @@ export const registerWithImage = async (formData) => {
 
   } catch (error) {
     console.error("❌ Error en registerWithImage:", error);
-    
+
     let errorMessage = error.message;
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
       errorMessage = "Error de conexión. Verifica que el servidor esté ejecutándose y que tengas acceso a HTTPS://localhost:4000";
     } else if (error.message.includes('certificate') || error.message.includes('SSL')) {
       errorMessage = "Error de certificado SSL. En desarrollo, puedes ignorar los warnings de certificados auto-firmados.";
     }
-    
+
     throw new Error(errorMessage);
   }
 };
@@ -314,7 +314,7 @@ export async function refreshAuthToken() {
     }
 
     const responseText = await response.text();
-    
+
     if (!response.ok) {
       throw new Error("Error al refrescar el token de acceso");
     }
@@ -385,15 +385,17 @@ export const getCurrentUser = async () => {
       throw new Error('No hay token de autenticación');
     }
 
+    // ✅ DECODIFICAR TOKEN CORRECTAMENTE
     const payload = JSON.parse(atob(token.split('.')[1]));
     const userId = payload.user_id;
 
+    console.log("🔍 [DEBUG] Token payload completo:", payload);
+    console.log("🔍 [DEBUG] User ID del token:", userId, "Tipo:", typeof userId);
+
     if (!userId) {
-      console.error('❌ [DEBUG] No se encontró user_id en el token. Payload completo:', payload);
+      console.error('❌ [DEBUG] No se encontró user_id en el token. Campos disponibles:', Object.keys(payload));
       throw new Error('No se pudo obtener el ID del usuario del token');
     }
-
-    console.log("🔍 [DEBUG] User ID del token:", userId, "Tipo:", typeof userId);
 
     const response = await authenticatedFetch(`${API_URL}/users/get-user/${userId}`);
 
@@ -409,7 +411,8 @@ export const getCurrentUser = async () => {
     throw error;
   }
 };
-// funciones para gestion de usuarios
+
+// funciones para gestión de usuarios
 // GET USERS - NUEVA FUNCIÓN PARA GESTIÓN DE USUARIOS
 export const getUsers = async () => {
   try {
@@ -461,31 +464,49 @@ export const createUser = async (userData) => {
   }
 };
 
-// UPDATE USER - NUEVA FUNCIÓN
+// UPDATE USER - FUNCIÓN MEJORADA CON VALIDACIÓN
 export const updateUser = async (userId, userData) => {
   try {
-    // Separar nombre completo en partes
-    const nameParts = userData.name.split(' ');
-    const first_name = nameParts[0] || '';
-    const paternal_surname = nameParts[1] || '';
-    const maternal_surname = nameParts[2] || '';
+    // ✅ VALIDAR QUE EL USER_ID NO SEA UNDEFINED
+    console.log("🔍 [FRONTEND] UserId recibido para actualizar:", userId, "Tipo:", typeof userId);
 
-    const response = await authenticatedFetch(`${API_URL}/users/update-profile/${userId}`, {
+    if (!userId || userId === 'undefined' || userId === undefined) {
+      throw new Error('ID de usuario no válido para la actualización');
+    }
+
+    // Convertir a número si es necesario
+    const numericUserId = parseInt(userId);
+    if (isNaN(numericUserId)) {
+      throw new Error('ID de usuario debe ser un número');
+    }
+
+    console.log("📤 Actualizando usuario:", { numericUserId, userData });
+
+    const response = await authenticatedFetch(`${API_URL}/users/update-profile/${numericUserId}`, {
       method: "PATCH",
       body: JSON.stringify({
-        first_name: first_name,
-        paternal_surname: paternal_surname,
-        maternal_surname: maternal_surname,
+        first_name: userData.first_name,
+        paternal_surname: userData.paternal_surname,
+        maternal_surname: userData.maternal_surname,
         email: userData.email
       })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Error al actualizar usuario');
+    const responseText = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      throw new Error('Respuesta inválida del servidor');
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      const errorMessage = data.message || data.error || `Error ${response.status} al actualizar usuario`;
+      throw new Error(errorMessage);
+    }
+
+    console.log("✅ Usuario actualizado:", data);
     return data.data || data;
   } catch (error) {
     console.error('Error actualizando usuario:', error);
@@ -493,28 +514,12 @@ export const updateUser = async (userId, userData) => {
   }
 };
 
-// DELETE USER - NUEVA FUNCIÓN
-export const deleteUser = async (userId) => {
-  try {
-    const response = await authenticatedFetch(`${API_URL}/users/${userId}`, {
-      method: "DELETE"
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Error al eliminar usuario');
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error eliminando usuario:', error);
-    throw error;
-  }
-};
-
-// UPDATE USER STATUS - NUEVA FUNCIÓN
+// UPDATE USER STATUS - FUNCIÓN CORREGIDA
 export const updateUserStatus = async (userId, isActive) => {
   try {
+    console.log("🔄 Actualizando estado:", { userId, isActive });
+
     const response = await authenticatedFetch(`${API_URL}/users/update-status/${userId}`, {
       method: "PATCH",
       body: JSON.stringify({
@@ -528,6 +533,7 @@ export const updateUserStatus = async (userId, isActive) => {
     }
 
     const data = await response.json();
+    console.log("✅ Estado actualizado:", data);
     return data.data || data;
   } catch (error) {
     console.error('Error actualizando estado del usuario:', error);
@@ -535,25 +541,30 @@ export const updateUserStatus = async (userId, isActive) => {
   }
 };
 
-// UPDATE USER ROLE - NUEVA FUNCIÓN
-export const updateUserRole = async (userId, roleId) => {
+// UPDATE USER PASSWORD - NUEVA FUNCIÓN
+export const updateUserPassword = async (userId, oldPassword, newPassword, repeatedPassword) => {
   try {
-    const response = await authenticatedFetch(`${API_URL}/users/update-role/${userId}`, {
+    console.log("🔐 Actualizando contraseña:", { userId });
+
+    const response = await authenticatedFetch(`${API_URL}/users/update-password/${userId}`, {
       method: "PATCH",
       body: JSON.stringify({
-        role_id: roleId
+        oldPassword,
+        newPassword,
+        repeatedPassword
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Error al actualizar rol del usuario');
+      throw new Error(errorData?.message || 'Error al actualizar contraseña');
     }
 
     const data = await response.json();
+    console.log("✅ Contraseña actualizada:", data);
     return data.data || data;
   } catch (error) {
-    console.error('Error actualizando rol del usuario:', error);
+    console.error('Error actualizando contraseña:', error);
     throw error;
   }
 };
@@ -605,8 +616,6 @@ export const getComments = async () => {
     throw error;
   }
 };
-
-
 
 export const createComment = async (message) => {
   try {
@@ -679,10 +688,12 @@ export const updateProfileImage = async (userId, imageFile) => {
     });
 
     if (!response.ok) {
-      throw new Error('Error al actualizar imagen de perfil');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Error al actualizar imagen de perfil');
     }
 
     const data = await response.json();
+    console.log("✅ Imagen de perfil actualizada:", data);
     return data.data;
   } catch (error) {
     console.error('Error actualizando imagen de perfil:', error);
@@ -693,11 +704,11 @@ export const updateProfileImage = async (userId, imageFile) => {
 // Función para obtener imagen de perfil
 export const getProfileImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  
+
   if (imagePath.startsWith('http')) {
     return imagePath;
   }
-  
+
   return `${API_URL}/uploads/profile/${imagePath}`;
 };
 
@@ -710,7 +721,7 @@ export const handleNetworkError = (error) => {
       originalError: error
     };
   }
-  
+
   if (error.message.includes('SSL') || error.message.includes('certificate')) {
     return {
       type: 'ssl',
@@ -718,7 +729,7 @@ export const handleNetworkError = (error) => {
       originalError: error
     };
   }
-  
+
   return {
     type: 'general',
     message: error.message,
@@ -733,17 +744,57 @@ export const checkServerConnection = async () => {
       method: 'GET',
       ...fetchConfig
     });
-    
+
     if (response.ok) {
       return { connected: true, message: 'Conexión exitosa con el servidor' };
     } else {
       return { connected: false, message: `Servidor respondió con estado: ${response.status}` };
     }
   } catch (error) {
-    return { 
-      connected: false, 
+    return {
+      connected: false,
       message: 'No se pudo conectar con el servidor',
-      error: error.message 
+      error: error.message
     };
   }
+};
+
+// Función para obtener usuario por ID (para administradores)
+export const getUserById = async (userId) => {
+  try {
+    const response = await authenticatedFetch(`${API_URL}/users/get-user/${userId}`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener usuario');
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error('Error obteniendo usuario:', error);
+    throw error;
+  }
+};
+
+// Función para verificar permisos de administrador
+export const checkAdminPermissions = async () => {
+  try {
+    const currentUser = await getCurrentUser();
+    return currentUser.role_id === 1; // 1 = Administrador
+  } catch (error) {
+    console.error('Error verificando permisos:', error);
+    return false;
+  }
+};
+
+// Función para formatear datos de usuario para el formulario
+export const formatUserForForm = (user) => {
+  return {
+    first_name: user.first_name || '',
+    paternal_surname: user.paternal_surname || '',
+    maternal_surname: user.maternal_surname || '',
+    email: user.email || '',
+    role: getRoleName(user.role_id),
+    profileImage: user.image_user ? getProfileImageUrl(user.image_user) : null
+  };
 };

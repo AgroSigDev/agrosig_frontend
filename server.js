@@ -25,7 +25,7 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   }).listen(3000, (err) => {
     if (err) throw err;
-    console.log('> 🚀 Frontend Next.js con HTTPS en https://localhost:3000');
-    console.log('> 📧 Login: https://localhost:3000/login');
+    console.log('> Frontend Next.js con HTTPS en https://localhost:3000');
+    console.log('> Login: https://localhost:3000/login');
   });
 });

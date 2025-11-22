@@ -8,14 +8,17 @@ import {
   getUsers,
   createUser,
   updateUser,
-  deleteUser,
   updateUserStatus,
   updateUserRole,
-  getRoleName
+  getRoleName,
+  registerWithImage,
+  updateProfileImage,
+  updateUserPassword
 } from "../../../services/api";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
+import UserModal from "../../components/UserModal";
 
 // Función para obtener la inicial del nombre como fallback
 const getInitialFromName = (name) => {
@@ -26,7 +29,7 @@ const getInitialFromName = (name) => {
 // Colores más profesionales y sutiles
 const getColorFromId = (id) => {
   const colors = [
-    'bg-slate-600', 'bg-stone-600', 'bg-neutral-600', 
+    'bg-slate-600', 'bg-stone-600', 'bg-neutral-600',
     'bg-zinc-600', 'bg-gray-600', 'bg-slate-700',
     'bg-stone-700', 'bg-neutral-700', 'bg-zinc-700'
   ];
@@ -41,32 +44,55 @@ export default function GestionUsuarioPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('Todos');
   const [selectedStatus, setSelectedStatus] = useState('Todos');
-  const [showAddUser, setShowAddUser] = useState(false);
-  const [editandoUsuario, setEditandoUsuario] = useState(null);
-  const [sending, setSending] = useState(false);
-  const router = useRouter();
+  const [updatingStatus, setUpdatingStatus] = useState({}); // Estado para controlar qué usuario está actualizando
 
-  // Datos del formulario
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'Usuario',
-    status: 'Activo',
-    phone: '',
-    department: ''
-  });
+  // Estados para modales
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState(null);
+  const [sending, setSending] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
     initializePage();
   }, [router]);
 
+  // Componente para mostrar el avatar - MEJORADO
+  const UserAvatar = ({ user, size = "w-8 h-8" }) => {
+    const [imageError, setImageError] = useState(false);
+
+    // Reset error state when user changes
+    useEffect(() => {
+      setImageError(false);
+    }, [user]);
+
+    if (user.profileImage && !imageError) {
+      return (
+        <img
+          src={user.profileImage}
+          alt={`Avatar de ${user.name}`}
+          className={`${size} rounded-lg object-cover shadow-sm border border-gray-200`}
+          onError={() => setImageError(true)}
+          onLoad={() => setImageError(false)}
+        />
+      );
+    }
+
+    return (
+      <div className={`${size} ${getColorFromId(user.id)} rounded-lg flex items-center justify-center text-white font-semibold text-sm shadow-sm border border-gray-200`}>
+        {getInitialFromName(user.name)}
+      </div>
+    );
+  };
+
   const initializePage = async () => {
     try {
-      console.log(' Inicializando página de gestión de usuarios...');
+      console.log('🔄 Inicializando página de gestión de usuarios...');
       const status = checkAuthStatus();
       if (!status.isAuthenticated) {
-        console.log(' No autenticado, redirigiendo...');
+        console.log('❌ No autenticado, redirigiendo...');
         router.push('/login');
         return;
       }
@@ -74,7 +100,7 @@ export default function GestionUsuarioPage() {
       notificationService.init();
 
       // Obtener datos del usuario actual
-      console.log('Obteniendo usuario actual...');
+      console.log('👤 Obteniendo usuario actual...');
       const currentUser = await getCurrentUser();
 
       setUserData({
@@ -88,7 +114,7 @@ export default function GestionUsuarioPage() {
       // Cargar usuarios 
       await cargarUsuarios();
     } catch (error) {
-      console.error(' Error inicializando página:', error);
+      console.error('❌ Error inicializando página:', error);
       notificationService.showErrorNotification('Error al cargar los usuarios: ' + error.message);
     } finally {
       setLoading(false);
@@ -99,25 +125,45 @@ export default function GestionUsuarioPage() {
     try {
       setLoading(true);
       const usuariosData = await getUsers();
-      
+
+      console.log("📥 Usuarios cargados del backend:", usuariosData);
+
       // Transformar los datos del backend al formato que espera tu frontend
-      const usuariosTransformados = usuariosData.map(usuario => ({
-        id: usuario.user_id,
-        name: `${usuario.first_name || ''} ${usuario.paternal_surname || ''} ${usuario.maternal_surname || ''}`.trim(),
-        email: usuario.email,
-        role: getRoleName(usuario.role_id),
-        role_id: usuario.role_id,
-        status: usuario.is_active ? 'Activo' : 'Inactivo',
-        joinDate: new Date(usuario.created_at).toISOString().split('T')[0],
-        phone: usuario.phone || '',
-        department: usuario.department || '',
-        profileImage: usuario.image_user ? `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${usuario.image_user}` : null,
-        is_active: usuario.is_active
-      }));
-      
+      const usuariosTransformados = usuariosData.map(usuario => {
+        // Construir nombre completo
+        const fullName = `${usuario.first_name || ''} ${usuario.paternal_surname || ''} ${usuario.maternal_surname || ''}`.trim();
+
+        // Construir URL de imagen correctamente
+        let profileImageUrl = null;
+        if (usuario.image_user) {
+          if (usuario.image_user.startsWith('http')) {
+            profileImageUrl = usuario.image_user;
+          } else {
+            profileImageUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${usuario.image_user}`;
+          }
+        }
+
+        return {
+          id: usuario.user_id,
+          name: fullName,
+          email: usuario.email,
+          role: getRoleName(usuario.role_id),
+          role_id: usuario.role_id,
+          status: usuario.is_active ? 'Activo' : 'Inactivo',
+          joinDate: new Date(usuario.created_at).toISOString().split('T')[0],
+          profileImage: profileImageUrl,
+          is_active: usuario.is_active,
+          // Mantener campos individuales para el formulario de edición
+          first_name: usuario.first_name,
+          paternal_surname: usuario.paternal_surname,
+          maternal_surname: usuario.maternal_surname
+        };
+      });
+
       setUsuarios(usuariosTransformados);
+      console.log(`✅ ${usuariosTransformados.length} usuarios cargados correctamente`);
     } catch (error) {
-      console.error('Error cargando usuarios:', error);
+      console.error('❌ Error cargando usuarios:', error);
       notificationService.showErrorNotification('Error al cargar usuarios: ' + error.message);
     } finally {
       setLoading(false);
@@ -126,152 +172,233 @@ export default function GestionUsuarioPage() {
 
   // Filtrar usuarios
   const filteredUsers = usuarios.filter(usuario => {
-    const matchesSearch = usuario.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         usuario.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (usuario.department && usuario.department.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesRole = selectedRole === 'Todos' || usuario.role === selectedRole;
-    const matchesStatus = selectedStatus === 'Todos' || usuario.status === selectedStatus;
-    
+    const searchLower = searchTerm.toLowerCase();
+    const name = usuario.name || '';
+    const email = usuario.email || '';
+    const role = usuario.role || '';
+    const status = usuario.status || '';
+
+    const matchesSearch = name.toLowerCase().includes(searchLower) ||
+      email.toLowerCase().includes(searchLower);
+    const matchesRole = selectedRole === 'Todos' || role === selectedRole;
+    const matchesStatus = selectedStatus === 'Todos' || status === selectedStatus;
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+const handleAgregarUsuario = async (formData) => {
+  try {
+    setSending(true);
 
-  const agregarUsuario = async (e) => {
-    e.preventDefault();
-    try {
-      setSending(true);
-      
-      // Crear usuario en el backend - TODOS se crean como "Usuario" (role_id: 2)
-      const userToCreate = {
-        ...formData,
-        role: 'Usuario' // Forzar rol de usuario para nuevos registros
-      };
-      
-      const nuevoUsuario = await createUser(userToCreate);
-      
-      // Actualizar la lista local
-      const usuarioTransformado = {
-        id: nuevoUsuario.user_id || nuevoUsuario.id,
-        name: formData.name,
-        email: formData.email,
-        role: 'Usuario',
-        role_id: 2,
-        status: 'Activo',
-        joinDate: new Date().toISOString().split('T')[0],
-        phone: formData.phone,
-        department: formData.department,
-        profileImage: null,
-        is_active: true
-      };
-      
-      setUsuarios(prev => [...prev, usuarioTransformado]);
-      setFormData({ 
-        name: '', 
-        email: '', 
-        role: 'Usuario', 
-        status: 'Activo',
-        phone: '',
-        department: ''
-      });
-      setShowAddUser(false);
-      
-      notificationService.showSuccessNotification('¡Usuario agregado correctamente! Se ha enviado una contraseña temporal.');
-    } catch (error) {
-      console.error('Error agregando usuario:', error);
-      notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
-    } finally {
-      setSending(false);
+    //  El formData ya viene como FormData desde el modal
+    // Solo necesitamos asegurarnos de que tenga todos los campos necesarios
+    console.log("📤 Creando usuario con FormData:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
     }
-  };
 
-  const editarUsuario = (usuario) => {
-    setEditandoUsuario(usuario);
-    setFormData({
-      name: usuario.name,
-      email: usuario.email,
-      role: usuario.role,
-      status: usuario.status,
-      phone: usuario.phone,
-      department: usuario.department
+    // Crear usuario en el backend usando registerWithImage
+    const nuevoUsuario = await registerWithImage(formData);
+
+    console.log("✅ Usuario creado:", nuevoUsuario);
+
+    // Crear URL de preview de la imagen si existe
+    let imagePreviewUrl = null;
+    const imageFile = formData.get('image');
+    if (imageFile instanceof File) {
+      // Para la imagen recién subida, usar el preview local inmediatamente
+      imagePreviewUrl = URL.createObjectURL(imageFile);
+    } else if (nuevoUsuario.image_user) {
+      // Si el backend devuelve un nombre de imagen, construir la URL
+      imagePreviewUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/profile/${nuevoUsuario.image_user}`;
+    }
+
+    // Obtener datos del formData para construir el nombre
+    const first_name = formData.get('first_name') || '';
+    const paternal_surname = formData.get('paternal_surname') || '';
+    const maternal_surname = formData.get('maternal_surname') || '';
+
+    // Actualizar la lista local
+    const usuarioTransformado = {
+      id: nuevoUsuario.user_id || nuevoUsuario.id,
+      name: `${first_name} ${paternal_surname} ${maternal_surname}`.trim(),
+      email: formData.get('email'),
+      role: 'Usuario', // Todos los nuevos usuarios son "Usuario"
+      role_id: 2,
+      status: 'Activo',
+      joinDate: new Date().toISOString().split('T')[0],
+      profileImage: imagePreviewUrl,
+      is_active: true,
+      // Mantener campos individuales para futuras ediciones
+      first_name: first_name,
+      paternal_surname: paternal_surname,
+      maternal_surname: maternal_surname
+    };
+
+    setUsuarios(prev => [...prev, usuarioTransformado]);
+    setShowAddModal(false);
+
+    notificationService.showSuccessNotification('¡Usuario agregado correctamente!');
+
+    // Forzar una recarga de usuarios después de un breve delay para obtener la imagen del servidor
+    setTimeout(() => {
+      cargarUsuarios();
+    }, 1000);
+
+  } catch (error) {
+    console.error('❌ Error agregando usuario:', error);
+    notificationService.showErrorNotification('Error al agregar usuario: ' + error.message);
+  } finally {
+    setSending(false);
+  }
+};
+
+
+
+const handleEditarUsuario = async (formData) => {
+  try {
+    setSending(true);
+    console.log("🔄 Iniciando actualización de usuario:", {
+      usuarioId: usuarioEditando.id
     });
-  };
 
-  const guardarEdicion = async (e) => {
-    e.preventDefault();
-    try {
-      setSending(true);
+    // ✅ Verificar si es FormData (tiene imagen) u objeto normal
+    if (formData instanceof FormData) {
+      console.log("📤 Usando FormData para actualización con imagen");
       
-      // Actualizar datos básicos del usuario
-      await updateUser(editandoUsuario.id, formData);
+      // Para FormData, usar la nueva función
+      const result = await updateUserWithImage(usuarioEditando.id, formData);
+      console.log("✅ Usuario actualizado con imagen:", result);
+    } else {
+      console.log("📤 Usando objeto JSON para actualización sin imagen");
       
-      // Si cambió el rol, actualizarlo también
-      if (formData.role !== editandoUsuario.role) {
-        const newRoleId = formData.role === 'Administrador' ? 1 : 2;
-        await updateUserRole(editandoUsuario.id, newRoleId);
-      }
-      
-      // Actualizar la lista local
-      setUsuarios(prev => prev.map(usuario => 
-        usuario.id === editandoUsuario.id 
-          ? { 
-              ...usuario, 
-              name: formData.name,
-              email: formData.email,
-              role: formData.role,
-              role_id: formData.role === 'Administrador' ? 1 : 2,
-              phone: formData.phone,
-              department: formData.department
-            }
-          : usuario
-      ));
-      
-      setEditandoUsuario(null);
-      setFormData({ 
-        name: '', 
-        email: '', 
-        role: 'Usuario', 
-        status: 'Activo',
-        phone: '',
-        department: ''
-      });
-      
-      notificationService.showSuccessNotification('¡Usuario actualizado correctamente!');
-    } catch (error) {
-      console.error('Error editando usuario:', error);
-      notificationService.showErrorNotification('Error al actualizar usuario: ' + error.message);
-    } finally {
-      setSending(false);
+      // Para objeto normal, usar la función existente
+      const updateData = {
+        first_name: formData.first_name.trim(),
+        paternal_surname: formData.paternal_surname.trim() || '',
+        maternal_surname: formData.maternal_surname.trim() || '',
+        email: formData.email.toLowerCase().trim()
+      };
+
+      await updateUser(usuarioEditando.id, updateData);
     }
-  };
 
-  const eliminarUsuario = async (usuarioId) => {
-    try {
-      // No permitir eliminar el propio usuario
-      if (usuarioId === userData?.userId) {
-        notificationService.showErrorNotification('No puedes eliminar tu propio usuario');
-        return;
-      }
-
-      const confirmed = await notificationService.showDeleteConfirmation();
-
-      if (confirmed) {
-        await deleteUser(usuarioId);
-        setUsuarios(prev => prev.filter(usuario => usuario.id !== usuarioId));
-        notificationService.showSuccessNotification('Usuario eliminado correctamente');
-      }
-    } catch (error) {
-      console.error('Error eliminando usuario:', error);
-      notificationService.showErrorNotification('Error al eliminar usuario: ' + error.message);
+    // Si se debe actualizar la contraseña (solo si se proporcionaron los campos)
+    if (formData.get && formData.get('oldPassword') && formData.get('password')) {
+      console.log("🔐 Actualizando contraseña");
+      await updateUserPassword(
+        usuarioEditando.id,
+        formData.get('oldPassword'),
+        formData.get('password'),
+        formData.get('confirmPassword')
+      );
+    } else if (formData.oldPassword && formData.password) {
+      console.log("🔐 Actualizando contraseña (objeto)");
+      await updateUserPassword(
+        usuarioEditando.id,
+        formData.oldPassword,
+        formData.password,
+        formData.confirmPassword
+      );
     }
+
+    // Actualizar la lista local inmediatamente
+    setUsuarios(prev => prev.map(usuario => {
+      if (usuario.id === usuarioEditando.id) {
+        const updatedUser = { ...usuario };
+        
+        // Actualizar nombre y email
+        if (formData instanceof FormData) {
+          updatedUser.first_name = formData.get('first_name') || usuario.first_name;
+          updatedUser.paternal_surname = formData.get('paternal_surname') || usuario.paternal_surname;
+          updatedUser.maternal_surname = formData.get('maternal_surname') || usuario.maternal_surname;
+          updatedUser.email = formData.get('email') || usuario.email;
+          updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
+          
+          // Actualizar imagen si hay una nueva
+          const imageFile = formData.get('image');
+          if (imageFile instanceof File) {
+            updatedUser.profileImage = URL.createObjectURL(imageFile);
+          }
+        } else {
+          updatedUser.first_name = formData.first_name || usuario.first_name;
+          updatedUser.paternal_surname = formData.paternal_surname || usuario.paternal_surname;
+          updatedUser.maternal_surname = formData.maternal_surname || usuario.maternal_surname;
+          updatedUser.email = formData.email || usuario.email;
+          updatedUser.name = `${updatedUser.first_name} ${updatedUser.paternal_surname} ${updatedUser.maternal_surname}`.trim();
+        }
+        
+        return updatedUser;
+      }
+      return usuario;
+    }));
+
+    setShowEditModal(false);
+    setUsuarioEditando(null);
+
+    notificationService.showSuccessNotification('¡Usuario actualizado correctamente!');
+
+    // Recargar usuarios para obtener datos actualizados del servidor
+    setTimeout(() => {
+      cargarUsuarios();
+    }, 500);
+
+  } catch (error) {
+    console.error('❌ Error editando usuario:', error);
+
+    // Mostrar mensaje de error específico
+    let errorMessage = error.message;
+    if (error.message.includes('email ya está en uso') ||
+      error.message.includes('duplicate key') ||
+      error.message.includes('users_email_unique')) {
+      errorMessage = 'El correo electrónico ya está en uso por otro usuario. Por favor, usa un email diferente.';
+    } else if (error.message.includes('current password is incorrect')) {
+      errorMessage = 'La contraseña actual es incorrecta.';
+    } else if (error.message.includes('new password cannot be the same')) {
+      errorMessage = 'La nueva contraseña debe ser diferente a la actual.';
+    } else if (error.message.includes('password do not match')) {
+      errorMessage = 'Las nuevas contraseñas no coinciden.';
+    } else if (error.message.includes('at least 8 characters')) {
+      errorMessage = 'La contraseña debe tener al menos 8 caracteres.';
+    }
+
+    notificationService.showErrorNotification(errorMessage);
+  } finally {
+    setSending(false);
+  }
+};;
+
+  // Abrir modal de edición - CORREGIDO
+  const abrirModalEdicion = (usuario) => {
+    console.log("📝 Abriendo modal de edición para:", usuario);
+
+    const usuarioParaEditar = {
+      ...usuario,
+      // Usar los campos individuales que ya tenemos
+      first_name: usuario.first_name || '',
+      paternal_surname: usuario.paternal_surname || '',
+      maternal_surname: usuario.maternal_surname || '',
+      // No incluir password en edición por seguridad
+      password: '',
+      confirmPassword: '',
+      role: usuario.role
+    };
+
+    setUsuarioEditando(usuarioParaEditar);
+    setShowEditModal(true);
   };
 
+  // Cerrar modales
+  const cerrarModales = () => {
+    setShowAddModal(false);
+    setShowEditModal(false);
+    setUsuarioEditando(null);
+    setSending(false);
+  };
+
+
+
+  // FUNCIÓN MEJORADA PARA CAMBIAR ESTADO - CON FEEDBACK VISUAL
   const cambiarEstadoUsuario = async (usuarioId, nuevoEstado) => {
     try {
       // No permitir desactivar el propio usuario
@@ -280,32 +407,36 @@ export default function GestionUsuarioPage() {
         return;
       }
 
-      await updateUserStatus(usuarioId, nuevoEstado === 'Activo');
-      
-      setUsuarios(prev => prev.map(usuario => 
-        usuario.id === usuarioId 
-          ? { ...usuario, status: nuevoEstado, is_active: nuevoEstado === 'Activo' }
+      // Mostrar estado de carga para este usuario específico
+      setUpdatingStatus(prev => ({ ...prev, [usuarioId]: true }));
+
+      const isActive = nuevoEstado === 'Activo';
+      console.log("🔄 Cambiando estado:", { usuarioId, isActive });
+
+      await updateUserStatus(usuarioId, isActive);
+
+      // Actualizar la lista local inmediatamente
+      setUsuarios(prev => prev.map(usuario =>
+        usuario.id === usuarioId
+          ? {
+            ...usuario,
+            status: nuevoEstado,
+            is_active: isActive
+          }
           : usuario
       ));
-      
-      notificationService.showSuccessNotification(`Usuario ${nuevoEstado === 'Activo' ? 'activado' : 'desactivado'} correctamente`);
-    } catch (error) {
-      console.error('Error cambiando estado del usuario:', error);
-      notificationService.showErrorNotification('Error al cambiar estado del usuario: ' + error.message);
-    }
-  };
 
-  const cancelarEdicion = () => {
-    setEditandoUsuario(null);
-    setShowAddUser(false);
-    setFormData({ 
-      name: '', 
-      email: '', 
-      role: 'Usuario', 
-      status: 'Activo',
-      phone: '',
-      department: ''
-    });
+      notificationService.showSuccessNotification(
+        `Usuario ${nuevoEstado === 'Activo' ? 'activado' : 'desactivado'} correctamente`
+      );
+
+    } catch (error) {
+      console.error('❌ Error cambiando estado del usuario:', error);
+      notificationService.showErrorNotification('Error al cambiar estado del usuario: ' + error.message);
+    } finally {
+      // Quitar el estado de carga
+      setUpdatingStatus(prev => ({ ...prev, [usuarioId]: false }));
+    }
   };
 
   const handleLogout = () => {
@@ -314,24 +445,17 @@ export default function GestionUsuarioPage() {
     router.push('/login');
   };
 
-  // Componente para mostrar el avatar
-  const UserAvatar = ({ user, size = "w-8 h-8" }) => {
-    if (user.profileImage) {
-      return (
-        <img
-          src={user.profileImage}
-          alt={`Avatar de ${user.name}`}
-          className={`${size} rounded-lg object-cover shadow-sm border border-gray-200`}
-        />
-      );
-    }
-
-    return (
-      <div className={`${size} ${getColorFromId(user.id)} rounded-lg flex items-center justify-center text-white font-semibold text-sm shadow-sm border border-gray-200`}>
-        {getInitialFromName(user.name)}
-      </div>
-    );
-  };
+  // Cleanup para URLs de objetos
+  useEffect(() => {
+    return () => {
+      // Limpiar URLs de objetos para evitar memory leaks
+      usuarios.forEach(usuario => {
+        if (usuario.profileImage && usuario.profileImage.startsWith('blob:')) {
+          URL.revokeObjectURL(usuario.profileImage);
+        }
+      });
+    };
+  }, [usuarios]);
 
   if (!isClient || loading) {
     return (
@@ -355,7 +479,7 @@ export default function GestionUsuarioPage() {
 
       {/* Tarjeta Principal CON MARGEN SUPERIOR */}
       <div className="mt-16 bg-white p-2 shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm min-h-[85vh] flex flex-col">
-        
+
         {/* Header con gradiente profesional */}
         <div className="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -414,13 +538,13 @@ export default function GestionUsuarioPage() {
               <div className="flex-1 min-w-[250px]">
                 <input
                   type="text"
-                  placeholder="Buscar por nombre, email o departamento..."
+                  placeholder="Buscar por nombre o email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
                 />
               </div>
-              
+
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
@@ -444,7 +568,7 @@ export default function GestionUsuarioPage() {
 
             {/* Botón Agregar Usuario */}
             <button
-              onClick={() => setShowAddUser(true)}
+              onClick={() => setShowAddModal(true)}
               className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md hover:shadow-lg whitespace-nowrap"
             >
               <div className="flex items-center space-x-2">
@@ -457,129 +581,18 @@ export default function GestionUsuarioPage() {
           </div>
         </div>
 
-        {/* Modal para Agregar/Editar Usuario */}
-        {(showAddUser || editandoUsuario) && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4 text-gray-900">
-                {editandoUsuario ? 'Editar Usuario' : 'Agregar Nuevo Usuario'}
-              </h2>
-              
-              <form onSubmit={editandoUsuario ? guardarEdicion : agregarUsuario}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nombre Completo
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                      placeholder="Ej: Juan Pérez García"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                      placeholder="ejemplo@agrosig.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Teléfono
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                      placeholder="+34 612 345 678"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Departamento
-                    </label>
-                    <input
-                      type="text"
-                      name="department"
-                      value={formData.department}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                      placeholder="Ej: Dirección, Campo, Comercial"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Rol
-                    </label>
-                    <select
-                      name="role"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                    >
-                      <option value="Usuario">Usuario</option>
-                      <option value="Administrador">Administrador</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Estado
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                    >
-                      <option value="Activo">Activo</option>
-                      <option value="Inactivo">Inactivo</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {sending ? 'Guardando...' : (editandoUsuario ? 'Guardar Cambios' : 'Agregar Usuario')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={cancelarEdicion}
-                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors font-medium"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
         {/* Tabla de Usuarios */}
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
-          {filteredUsers.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-16 h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-transparent mx-auto mb-4"></div>
+                <div className="text-xl font-semibold text-slate-700">
+                  Cargando usuarios...
+                </div>
+              </div>
+            </div>
+          ) : filteredUsers.length === 0 ? (
             <div className="text-center py-16 h-full flex items-center justify-center">
               <div className="max-w-md">
                 <div className="text-6xl mb-4 opacity-20 text-gray-400">👥</div>
@@ -587,7 +600,7 @@ export default function GestionUsuarioPage() {
                   No se encontraron usuarios
                 </h3>
                 <p className="text-gray-400 text-sm">
-                  {searchTerm || selectedRole !== 'Todos' || selectedStatus !== 'Todos' 
+                  {searchTerm || selectedRole !== 'Todos' || selectedStatus !== 'Todos'
                     ? 'Intenta ajustar los filtros de búsqueda'
                     : 'No hay usuarios registrados en el sistema'
                   }
@@ -602,12 +615,6 @@ export default function GestionUsuarioPage() {
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Usuario
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Contacto
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Departamento
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Rol
@@ -641,34 +648,22 @@ export default function GestionUsuarioPage() {
                           </div>
                         </td>
 
-                        {/* Columna Contacto */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{usuario.phone || 'N/A'}</div>
-                        </td>
-
-                        {/* Columna Departamento */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{usuario.department || 'N/A'}</div>
-                        </td>
-
                         {/* Columna Rol */}
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            usuario.role === 'Administrador' 
-                              ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                              : 'bg-gray-100 text-gray-800 border border-gray-200'
-                          }`}>
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${usuario.role === 'Administrador'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                            : 'bg-gray-100 text-gray-800 border border-gray-200'
+                            }`}>
                             {usuario.role}
                           </span>
                         </td>
 
                         {/* Columna Estado */}
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            usuario.status === 'Activo'
-                              ? 'bg-green-100 text-green-800 border border-green-200'
-                              : 'bg-red-100 text-red-800 border border-red-200'
-                          }`}>
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${usuario.status === 'Activo'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                            }`}>
                             {usuario.status}
                           </span>
                         </td>
@@ -682,7 +677,7 @@ export default function GestionUsuarioPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => editarUsuario(usuario)}
+                              onClick={() => abrirModalEdicion(usuario)}
                               className="text-green-600 hover:text-green-800 transition-colors p-2 rounded-lg hover:bg-green-50"
                               title="Editar usuario"
                             >
@@ -691,33 +686,32 @@ export default function GestionUsuarioPage() {
                               </svg>
                             </button>
 
+                            {/* BOTÓN DE ESTADO - MEJORADO CON FEEDBACK VISUAL */}
                             <button
                               onClick={() => cambiarEstadoUsuario(usuario.id, usuario.status === 'Activo' ? 'Inactivo' : 'Activo')}
-                              className={`p-2 rounded-lg transition-colors ${
-                                usuario.status === 'Activo' 
-                                  ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' 
+                              disabled={updatingStatus[usuario.id]}
+                              className={`p-2 rounded-lg transition-colors ${updatingStatus[usuario.id]
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : usuario.status === 'Activo'
+                                  ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'
                                   : 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                              }`}
+                                }`}
                               title={usuario.status === 'Activo' ? 'Desactivar usuario' : 'Activar usuario'}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                                {usuario.status === 'Activo' ? (
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
-                                ) : (
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                )}
-                              </svg>
+                              {updatingStatus[usuario.id] ? (
+                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                                  {usuario.status === 'Activo' ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                  ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                  )}
+                                </svg>
+                              )}
                             </button>
 
-                            <button
-                              onClick={() => eliminarUsuario(usuario.id)}
-                              className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-lg hover:bg-red-50"
-                              title="Eliminar usuario"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                              </svg>
-                            </button>
+
                           </div>
                         </td>
                       </tr>
@@ -729,6 +723,25 @@ export default function GestionUsuarioPage() {
           )}
         </div>
       </div>
+
+      {/* Modales */}
+      {/* Modal de agregar usuario */}
+      <UserModal
+        isOpen={showAddModal}
+        onClose={cerrarModales}
+        onSubmit={handleAgregarUsuario}
+        loading={sending}
+        user={null}
+      />
+
+      {/* Modal de editar usuario */}
+      <UserModal
+        isOpen={showEditModal}
+        onClose={cerrarModales}
+        onSubmit={handleEditarUsuario}
+        user={usuarioEditando}
+        loading={sending}
+      />
     </div>
   );
 }

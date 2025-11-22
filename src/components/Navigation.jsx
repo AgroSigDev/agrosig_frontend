@@ -16,17 +16,17 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
   // DEBUG: Verificar estructura del usuario
   useEffect(() => {
     if (userData) {
-      console.log("🔍 [NAVIGATION] userData recibido:", userData);
-      console.log("🔍 [NAVIGATION] Email del usuario:", userData.email);
-      console.log("🔍 [NAVIGATION] Campos disponibles:", Object.keys(userData));
+      console.log("[NAVIGATION] userData recibido:", userData);
+      console.log("[NAVIGATION] Email del usuario:", userData.email);
+      console.log("[NAVIGATION] Campos disponibles:", Object.keys(userData));
 
       // Verificar si tiene role_id
-      console.log("🔍 [NAVIGATION] ¿Tiene role_id?:", 'role_id' in userData);
-      console.log("🔍 [NAVIGATION] role_id valor:", userData.role_id);
+      console.log("[NAVIGATION] ¿Tiene role_id?:", 'role_id' in userData);
+      console.log("[NAVIGATION] role_id valor:", userData.role_id);
 
       // Verificar si es admin
       const adminCheck = isAdmin();
-      console.log("🔍 [NAVIGATION] ¿Es admin?:", adminCheck);
+      console.log("[NAVIGATION] ¿Es admin?:", adminCheck);
     }
   }, [userData]);
 
@@ -81,7 +81,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     }
   };
 
-  // ✅ FUNCIÓN MEJORADA: Obtener nombre completo del usuario
+  // FUNCIÓN MEJORADA: Obtener nombre completo del usuario
   const getUserFullName = () => {
     if (!userData) return "Cargando...";
 
@@ -103,7 +103,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     return userData.email?.split('@')[0] || "Usuario";
   };
 
-  // ✅ FUNCIÓN NUEVA: Obtener información detallada del usuario para mostrar
+  // FUNCIÓN NUEVA: Obtener información detallada del usuario para mostrar
   const getUserDisplayInfo = () => {
     if (!userData) {
       return {
@@ -136,29 +136,29 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     return name ? name[0].toUpperCase() : userData.email?.[0].toUpperCase() || "U";
   };
 
-  // ✅ FUNCIÓN CORREGIDA: Verificar admin de forma robusta
+  //  FUNCIÓN CORREGIDA: Verificar admin de forma robusta
   const isAdmin = () => {
     if (!userData) {
-      console.log("❌ [isAdmin] userData no disponible");
+      console.log(" [isAdmin] userData no disponible");
       return false;
     }
 
-    console.log("🎯 [isAdmin] Verificando admin para:", userData.email);
+    console.log(" [isAdmin] Verificando admin para:", userData.email);
 
     // MÉTODO 1: Verificar role_id en userData (si el backend lo incluye)
     if (userData.role_id !== undefined && userData.role_id !== null) {
-      console.log("🔍 [isAdmin] role_id en userData:", userData.role_id, "Tipo:", typeof userData.role_id);
+      console.log(" [isAdmin] role_id en userData:", userData.role_id, "Tipo:", typeof userData.role_id);
 
       // Convertir a número y verificar
       const roleId = Number(userData.role_id);
       if (roleId === 1) {
-        console.log("✅ [isAdmin] ADMIN detectado por role_id en userData");
+        console.log("[isAdmin] ADMIN detectado por role_id en userData");
         return true;
       }
 
       // También verificar como string
       if (userData.role_id === "1") {
-        console.log("✅ [isAdmin] ADMIN detectado por role_id (string) en userData");
+        console.log("[isAdmin] ADMIN detectado por role_id (string) en userData");
         return true;
       }
     }
@@ -171,12 +171,12 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
         console.log("🔍 [isAdmin] Payload del token:", payload);
 
         if (payload.role_id === 1 || payload.role_id === "1") {
-          console.log("✅ [isAdmin] ADMIN detectado por role_id en token JWT");
+          console.log(" [isAdmin] ADMIN detectado por role_id en token JWT");
           return true;
         }
       }
     } catch (error) {
-      console.log("❌ [isAdmin] Error decodificando token:", error);
+      console.log(" [isAdmin] Error decodificando token:", error);
     }
 
     // MÉTODO 3: Fallback por email específico
@@ -188,15 +188,15 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     ];
 
     const userEmail = userData.email?.toLowerCase().trim() || '';
-    console.log("🔍 [isAdmin] Email del usuario:", userEmail);
+    console.log(" [isAdmin] Email del usuario:", userEmail);
 
     if (adminEmails.includes(userEmail)) {
-      console.log("✅ [isAdmin] ADMIN detectado por email específico");
+      console.log(" [isAdmin] ADMIN detectado por email específico");
       return true;
     }
 
-    console.log("❌ [isAdmin] USUARIO NORMAL");
-    console.log("📋 [isAdmin] userData para debug:", {
+    console.log(" [isAdmin] USUARIO NORMAL");
+    console.log(" [isAdmin] userData para debug:", {
       email: userData.email,
       role_id: userData.role_id,
       has_role_id: 'role_id' in userData,
@@ -264,7 +264,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
     ? [...baseNavigationItems, ...adminNavigationItems]
     : baseNavigationItems;
 
-  console.log("🎯 [NAVIGATION] Estado final - Admin:", adminStatus, "Items:", navigationItems.length);
+  console.log(" [NAVIGATION] Estado final - Admin:", adminStatus, "Items:", navigationItems.length);
 
   const isActive = (path) => {
     if (path === "/dashboard") {
@@ -505,7 +505,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                     {/* Menu Items */}
                     <div className="py-1">
                       <button
-                        onClick={() => handleComingSoon("Mi Perfil")}
+                        onClick={() => router.push("/perfil")}
                         className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors duration-150 group"
                       >
                         <div className="p-1.5 rounded-lg bg-gray-100 group-hover:bg-gray-200 transition-colors">
@@ -541,7 +541,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                 )}
               </div>
             ) : (
-              // ✅ ESTADO MEJORADO PARA USUARIOS NO AUTENTICADOS
+              // ESTADO MEJORADO PARA USUARIOS NO AUTENTICADOS
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleLoginClick}
@@ -552,7 +552,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                   </svg>
                   <span className="font-semibold">Iniciar Sesión</span>
                 </button>
-                
+
                 <button
                   onClick={() => router.push('/registro')}
                   className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-200 border border-green-600 hover:border-green-700 hover:shadow-sm"
