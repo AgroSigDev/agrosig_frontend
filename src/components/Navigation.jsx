@@ -12,6 +12,7 @@ import {
 } from "../../services/api";
 
 const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const router = useRouter();
