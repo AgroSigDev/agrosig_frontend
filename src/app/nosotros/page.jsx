@@ -606,7 +606,7 @@ export default function NosotrosPage() {
                                                         {/* Universidad */}
                                                         <div className="mb-6">
                                                             <span className="inline-block bg-blue-100 text-blue-800 text-sm px-4 py-2 rounded-full font-medium">
-                                                                UT Selva, Chiapas
+                                                                UTS, Chiapas
                                                             </span>
                                                         </div>
 
