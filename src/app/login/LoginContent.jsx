@@ -14,32 +14,35 @@ export default function LoginContent() {
   const [isHovered, setIsHovered] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams(); // ✅ Ahora está dentro de Suspense
+  const searchParams = useSearchParams(); 
 
   useEffect(() => {
-    setIsClient(true);
-    
-    // VERIFICAR AUTENTICACIÓN USANDO LA NUEVA FUNCIÓN
-    const authenticated = isAuthenticated();
-    if (authenticated) {
-      router.push('/dashboard');
-    }
+  setIsClient(true);
+  
+  // VERIFICAR AUTENTICACIÓN USANDO LA NUEVA FUNCIÓN
+  const authenticated = isAuthenticated();
+  if (authenticated) {
+    router.push('/dashboard');
+  }
 
-    // VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO
-    const message = searchParams.get('message');
+  // VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO SIN useSearchParams
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
     if (message) {
-      setShowSuccessAlert(true);
-      // Limpiar el parámetro de la URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+        setShowSuccessAlert(true);
+        // Limpiar el parámetro de la URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
     }
-  }, [router, searchParams]);
+  }, [router]);
 
   // Componente de Alerta de Éxito en Login
   const SuccessAlert = () => {
-    if (!showSuccessAlert) return null;
+  if (!showSuccessAlert) return null;
 
-    return (
+  return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
           <div className="flex items-center space-x-3">
@@ -53,7 +56,7 @@ export default function LoginContent() {
                 ¡Registro Exitoso!
               </h3>
               <p className="mt-1 text-sm text-emerald-700">
-                {searchParams.get('message') || 'Cuenta creada exitosamente. Por favor, inicia sesión.'}
+                Cuenta creada exitosamente. Por favor, inicia sesión.
               </p>
             </div>
             <button
