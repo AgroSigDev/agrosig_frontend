@@ -1,8 +1,7 @@
-// app/login/LoginContent.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { login, checkAuthStatus, isAuthenticated } from "../../../services/api/index";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function LoginContent() {
   const [email, setEmail] = useState("");
@@ -14,22 +13,21 @@ export default function LoginContent() {
   const [isHovered, setIsHovered] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams(); 
 
   useEffect(() => {
-  setIsClient(true);
-  
-  // VERIFICAR AUTENTICACIÓN USANDO LA NUEVA FUNCIÓN
-  const authenticated = isAuthenticated();
-  if (authenticated) {
-    router.push('/dashboard');
-  }
+    setIsClient(true);
+    
+    // VERIFICAR AUTENTICACIÓN USANDO LA NUEVA FUNCIÓN
+    const authenticated = isAuthenticated();
+    if (authenticated) {
+      router.push('/dashboard');
+    }
 
-  // VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO SIN useSearchParams
-  if (typeof window !== 'undefined') {
-    const urlParams = new URLSearchParams(window.location.search);
-    const message = urlParams.get('message');
-    if (message) {
+    // VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO SIN useSearchParams
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const message = urlParams.get('message');
+      if (message) {
         setShowSuccessAlert(true);
         // Limpiar el parámetro de la URL
         const newUrl = window.location.pathname;
@@ -40,9 +38,9 @@ export default function LoginContent() {
 
   // Componente de Alerta de Éxito en Login
   const SuccessAlert = () => {
-  if (!showSuccessAlert) return null;
+    if (!showSuccessAlert) return null;
 
-  return (
+    return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
           <div className="flex items-center space-x-3">
