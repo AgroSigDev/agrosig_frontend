@@ -12,27 +12,28 @@ export default function LoginContent() {
   const [isClient, setIsClient] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
     
-    // VERIFICAR AUTENTICACIÓN USANDO LA NUEVA FUNCIÓN
+    // Solo verificar autenticación en el cliente
     const authenticated = isAuthenticated();
     if (authenticated) {
       router.push('/dashboard');
+    } else {
+      setHasCheckedAuth(true);
     }
 
-    // VERIFICAR SI HAY MENSAJE DE REGISTRO EXITOSO SIN useSearchParams
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const message = urlParams.get('message');
-      if (message) {
-        setShowSuccessAlert(true);
-        // Limpiar el parámetro de la URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-      }
+    // Verificar parámetros de URL solo en cliente
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message');
+    if (message) {
+      setShowSuccessAlert(true);
+      // Limpiar parámetro de URL sin usar useSearchParams
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
     }
   }, [router]);
 
@@ -96,19 +97,14 @@ export default function LoginContent() {
       setError(null);
       setLoading(true);
       
-      // USAR LA NUEVA FUNCIÓN DE LOGIN ACTUALIZADA
       await login(email, password);
-      
-      // Redirigir al dashboard después del login exitoso
       router.push('/dashboard');
       
     } catch (err) {
       console.error('Error en login:', err);
       
-      // Manejar errores específicos de la nueva función de login
       let errorMessage = err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.";
       
-      // Traducir mensajes de error específicos si es necesario
       if (errorMessage.includes('User not found')) {
         errorMessage = "Usuario no encontrado. Verifica tu email.";
       } else if (errorMessage.includes('Invalid password')) {
@@ -125,7 +121,6 @@ export default function LoginContent() {
     }
   };
 
-  // FUNCIÓN PARA REDIRIGIR AL REGISTRO
   const handleCreateAccount = () => {
     router.push('/registro');
   };
@@ -136,7 +131,8 @@ export default function LoginContent() {
     }
   };
 
-  if (!isClient) {
+  // Mostrar loading hasta que el cliente esté listo y se haya verificado la auth
+  if (!isClient || !hasCheckedAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50">
         <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl p-8 w-full max-w-md mx-4 text-center border border-emerald-200/60">
@@ -156,6 +152,7 @@ export default function LoginContent() {
     );
   }
 
+  // ... el resto de tu componente permanece igual
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 p-4 relative overflow-hidden">
       {/* Renderizar alerta de éxito */}
