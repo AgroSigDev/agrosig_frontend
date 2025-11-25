@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { login, checkAuthStatus, isAuthenticated } from "../../../services/api/index";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-export default function LoginContent() {
+export default function LoginContent({ initialMessage = '' }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -15,7 +15,6 @@ export default function LoginContent() {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   
   const router = useRouter();
-  const searchParams = useSearchParams(); // ✅ Usar useSearchParams hook
 
   useEffect(() => {
     setIsClient(true);
@@ -28,16 +27,11 @@ export default function LoginContent() {
       setHasCheckedAuth(true);
     }
 
-    // ✅ Usar searchParams hook en lugar de window.location
-    const message = searchParams.get('message');
-    if (message) {
+    // Usar el mensaje inicial desde las props del servidor
+    if (initialMessage) {
       setShowSuccessAlert(true);
-      // Limpiar parámetro de URL sin recargar
-      const url = new URL(window.location);
-      url.searchParams.delete('message');
-      window.history.replaceState({}, '', url);
     }
-  }, [router, searchParams]); // ✅ Agregar searchParams a las dependencias
+  }, [router, initialMessage]);
 
   // Componente de Alerta de Éxito en Login
   const SuccessAlert = () => {
@@ -154,6 +148,7 @@ export default function LoginContent() {
     );
   }
 
+  // ... (el resto de tu componente JSX permanece exactamente igual)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 p-4 relative overflow-hidden">
       {/* Renderizar alerta de éxito */}
