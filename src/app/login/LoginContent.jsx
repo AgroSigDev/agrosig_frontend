@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { login, checkAuthStatus, isAuthenticated } from "../../../services/api/index";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginContent() {
   const [email, setEmail] = useState("");
@@ -13,7 +13,9 @@ export default function LoginContent() {
   const [isHovered, setIsHovered] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  
   const router = useRouter();
+  const searchParams = useSearchParams(); // ✅ Usar useSearchParams hook
 
   useEffect(() => {
     setIsClient(true);
@@ -26,16 +28,16 @@ export default function LoginContent() {
       setHasCheckedAuth(true);
     }
 
-    // Verificar parámetros de URL solo en cliente
-    const urlParams = new URLSearchParams(window.location.search);
-    const message = urlParams.get('message');
+    // ✅ Usar searchParams hook en lugar de window.location
+    const message = searchParams.get('message');
     if (message) {
       setShowSuccessAlert(true);
-      // Limpiar parámetro de URL sin usar useSearchParams
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      // Limpiar parámetro de URL sin recargar
+      const url = new URL(window.location);
+      url.searchParams.delete('message');
+      window.history.replaceState({}, '', url);
     }
-  }, [router]);
+  }, [router, searchParams]); // ✅ Agregar searchParams a las dependencias
 
   // Componente de Alerta de Éxito en Login
   const SuccessAlert = () => {
@@ -152,7 +154,6 @@ export default function LoginContent() {
     );
   }
 
-  // ... el resto de tu componente permanece igual
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 p-4 relative overflow-hidden">
       {/* Renderizar alerta de éxito */}

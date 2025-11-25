@@ -1,4 +1,3 @@
-// app/login/page.jsx
 import { Suspense } from 'react'
 import LoginContent from './LoginContent'
 
