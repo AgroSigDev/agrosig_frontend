@@ -1,5 +1,5 @@
 // services/api/utils.js - CONFIGURACIÓN Y UTILIDADES (SOLO USO INTERNO)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-agrosig-backend.onrender.com/";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api-agrosig-backend.onrender.com").replace(/\/$/, '');
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
@@ -80,9 +80,9 @@ export const getProfileImageUrl = (imagePath) => {
   return `${API_URL}/uploads/profile/${imagePath}`;
 };
 
-export { 
-  API_URL, 
-  ACCESS_TOKEN_KEY, 
-  REFRESH_TOKEN_KEY, 
-  fetchConfig 
+export {
+  API_URL,
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  fetchConfig
 };
