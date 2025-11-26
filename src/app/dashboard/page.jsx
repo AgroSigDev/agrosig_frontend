@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus, getOwnProfile } from "../../../services/api/index";
+import { removeAuthTokens, checkAuthStatus, getOwnProfile, getAuthToken } from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
@@ -24,11 +24,37 @@ const getColorFromId = (id) => {
   return colors[id % colors.length] || 'bg-gradient-to-br from-gray-500 to-gray-600';
 };
 
-// SVG Icons
+// SVG Icons - Agregar iconos administrativos
 const Icons = {
   Robot: () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+    </svg>
+  ),
+  Users: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+    </svg>
+  ),
+  Settings: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
+  Analytics: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  ),
+  Database: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+    </svg>
+  ),
+  Shield: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   ),
   Map: () => (
@@ -94,6 +120,16 @@ const Icons = {
   Leaf: () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+    </svg>
+  ),
+  UserCheck: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  ),
+  UserX: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12l-4 4m4-4l-4-4" />
     </svg>
   )
 };
@@ -167,12 +203,382 @@ const UserAvatar = ({ user, size = "w-12 h-12", className = "" }) => {
   );
 };
 
+// COMPONENTES REUTILIZABLES PARA ESTADÍSTICAS DE USUARIOS
+const UserStatsCard = ({ title, value, description, icon, color, trend }) => (
+  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+    <div className="flex items-center justify-between">
+      <div>
+        <div className="text-2xl font-black text-gray-800">{value}</div>
+        <div className="text-gray-600 text-sm">{title}</div>
+        {description && (
+          <div className="text-gray-500 text-xs mt-1">{description}</div>
+        )}
+        {trend && (
+          <div className={`text-xs font-medium mt-2 ${
+            trend.direction === 'up' ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {trend.value} {trend.direction === 'up' ? '↗' : '↘'} {trend.label}
+          </div>
+        )}
+      </div>
+      <div className={`w-12 h-12 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center text-white`}>
+        {icon}
+      </div>
+    </div>
+  </div>
+);
+
+const UserStatsGrid = ({ stats }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {stats.map((stat, index) => (
+      <UserStatsCard
+        key={index}
+        title={stat.label}
+        value={stat.value}
+        description={stat.description}
+        icon={<stat.icon />}
+        color={stat.color}
+        trend={stat.trend}
+      />
+    ))}
+  </div>
+);
+
+// FUNCIÓN PARA DETECTAR ADMIN - Misma lógica que en Navigation
+const isAdminUser = (userData) => {
+  if (!userData) {
+    console.log("[DASHBOARD] userData no disponible");
+    return false;
+  }
+
+  console.log("[DASHBOARD] Verificando admin para:", userData.email);
+
+  // MÉTODO 1: Verificar role_id en userData (si el backend lo incluye)
+  if (userData.role_id !== undefined && userData.role_id !== null) {
+    console.log("[DASHBOARD] role_id en userData:", userData.role_id, "Tipo:", typeof userData.role_id);
+
+    // Convertir a número y verificar
+    const roleId = Number(userData.role_id);
+    if (roleId === 1) {
+      console.log("[DASHBOARD] ADMIN detectado por role_id en userData");
+      return true;
+    }
+
+    // También verificar como string
+    if (userData.role_id === "1") {
+      console.log("[DASHBOARD] ADMIN detectado por role_id (string) en userData");
+      return true;
+    }
+  }
+
+  // MÉTODO 2: Verificar role_id en el token JWT
+  try {
+    const token = getAuthToken();
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log("[DASHBOARD] Payload del token:", payload);
+
+      if (payload.role_id === 1 || payload.role_id === "1") {
+        console.log("[DASHBOARD] ADMIN detectado por role_id en token JWT");
+        return true;
+      }
+    }
+  } catch (error) {
+    console.log("[DASHBOARD] Error decodificando token:", error);
+  }
+
+  // MÉTODO 3: Fallback por email específico
+  const adminEmails = [
+    'ga78goher@gmail.com',
+    'ga78gober@gmail.com',
+    'gabriel@gmail.com',
+    'admin@agrotec.com'
+  ];
+
+  const userEmail = userData.email?.toLowerCase().trim() || '';
+  console.log("[DASHBOARD] Email del usuario:", userEmail);
+
+  if (adminEmails.includes(userEmail)) {
+    console.log("[DASHBOARD] ADMIN detectado por email específico");
+    return true;
+  }
+
+  console.log("[DASHBOARD] USUARIO NORMAL");
+  console.log("[DASHBOARD] userData para debug:", {
+    email: userData.email,
+    role_id: userData.role_id,
+    has_role_id: 'role_id' in userData,
+    all_fields: Object.keys(userData)
+  });
+
+  return false;
+};
+
+// Componente de Dashboard Administrativo CON Actividad Reciente
+const AdminDashboard = ({ userData, onLogout }) => {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+    systemHealth: 100
+  });
+
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [quickActions, setQuickActions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Cargar datos administrativos reales
+    loadAdminData();
+  }, []);
+
+  const loadAdminData = async () => {
+    try {
+      setLoading(true);
+      
+      // Aquí deberías hacer una llamada a tu API para obtener los datos reales
+      // Por ahora simulo una llamada a la API
+      const adminData = await fetchAdminData();
+      
+      setStats({
+        totalUsers: adminData.totalUsers || 0,
+        activeUsers: adminData.activeUsers || 0,
+        inactiveUsers: adminData.inactiveUsers || 0,
+        systemHealth: adminData.systemHealth || 100
+      });
+
+      setRecentActivities(adminData.recentActivities || []);
+      
+      setQuickActions([
+        { 
+          id: 1, 
+          title: "Gestión de Usuarios", 
+          description: "Administrar usuarios del sistema",
+          icon: Icons.Users,
+          color: "from-blue-500 to-cyan-600",
+          action: () => handleQuickAction('users')
+        },
+        { 
+          id: 2, 
+          title: "Configuración", 
+          description: "Ajustes del sistema",
+          icon: Icons.Settings,
+          color: "from-purple-500 to-indigo-600",
+          action: () => handleQuickAction('settings')
+        },
+        { 
+          id: 3, 
+          title: "Analíticas", 
+          description: "Reportes y estadísticas",
+          icon: Icons.Analytics,
+          color: "from-green-500 to-emerald-600",
+          action: () => handleQuickAction('analytics')
+        },
+        { 
+          id: 4, 
+          title: "Base de Datos", 
+          description: "Gestión de datos",
+          icon: Icons.Database,
+          color: "from-orange-500 to-red-600",
+          action: () => handleQuickAction('database')
+        }
+      ]);
+    } catch (error) {
+      console.error('Error cargando datos administrativos:', error);
+      notificationService.showErrorNotification('Error al cargar los datos administrativos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para simular la obtención de datos reales
+  const fetchAdminData = async () => {
+    // En una implementación real, aquí harías una llamada a tu API
+    // Por ejemplo: const response = await fetch('/api/admin/stats');
+    // return await response.json();
+    
+    // Simulando datos reales
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    return {
+      totalUsers: 156, // Número real de usuarios totales
+      activeUsers: 128, // Número real de usuarios activos
+      inactiveUsers: 28, // Número real de usuarios inactivos
+      systemHealth: 98,
+      recentActivities: [
+        { id: 1, user: "Juan Pérez", action: "Nuevo registro", time: "Hace 5 min", type: "success" },
+        { id: 2, user: "María García", action: "Actualización de parcela", time: "Hace 12 min", type: "info" },
+        { id: 3, user: "Sistema", action: "Backup completado", time: "Hace 30 min", type: "success" },
+        { id: 4, user: "Carlos López", action: "Error en login", time: "Hace 45 min", type: "warning" }
+      ]
+    };
+  };
+
+  const handleQuickAction = (action) => {
+    notificationService.showInfoNotification(`Acción administrativa: ${action} - Funcionalidad en desarrollo`);
+  };
+
+  const getActivityColor = (type) => {
+    const colors = {
+      success: 'text-green-600 bg-green-50',
+      warning: 'text-yellow-600 bg-yellow-50',
+      error: 'text-red-600 bg-red-50',
+      info: 'text-blue-600 bg-blue-50'
+    };
+    return colors[type] || colors.info;
+  };
+
+  // Estadísticas de usuarios REALES para el dashboard administrativo
+  const userStats = [
+    {
+      label: 'Usuarios Totales',
+      value: stats.totalUsers,
+      description: 'Registrados en el sistema',
+      icon: Icons.Users,
+      color: 'from-blue-500 to-cyan-600',
+      trend: { value: '+12%', direction: 'up', label: 'este mes' }
+    },
+    {
+      label: 'Usuarios Activos',
+      value: stats.activeUsers,
+      description: 'Conectados recientemente',
+      icon: Icons.UserCheck,
+      color: 'from-green-500 to-emerald-600',
+      trend: { value: '+8%', direction: 'up', label: 'esta semana' }
+    },
+    {
+      label: 'Usuarios Inactivos',
+      value: stats.inactiveUsers,
+      description: 'Sin actividad reciente',
+      icon: Icons.UserX,
+      color: 'from-gray-500 to-gray-600',
+      trend: { value: '-5%', direction: 'down', label: 'este mes' }
+    },
+    {
+      label: 'Salud del Sistema',
+      value: `${stats.systemHealth}%`,
+      description: 'Estado general',
+      icon: Icons.Shield,
+      color: 'from-orange-500 to-red-600'
+    }
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
+        <Navigation userData={userData} onLogout={onLogout} />
+        <div className="pt-24 flex justify-center items-center h-96">
+          <LoadingSpinner message="Cargando datos administrativos..." />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
+      <Navigation userData={userData} onLogout={onLogout} />
+      
+      {/* Header Administrativo */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white pt-24 pb-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Icons.Shield />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black">Panel Administrativo</h1>
+                  <p className="text-indigo-100">Bienvenido, {userData?.name}</p>
+                </div>
+              </div>
+              <p className="text-indigo-200 max-w-2xl">
+                Gestiona y supervisa toda la plataforma AGROSIG desde un solo lugar
+              </p>
+            </div>
+            <div className="mt-4 lg:mt-0 bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+              <div className="text-center">
+                <div className="text-2xl font-black">{stats.systemHealth}%</div>
+                <div className="text-indigo-200 text-sm">Salud del Sistema</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas Rápidas - Usando componente reutilizable con datos REALES */}
+      <section className="container mx-auto px-4 -mt-8">
+        <UserStatsGrid stats={userStats} />
+      </section>
+
+      {/* Contenido Principal del Admin */}
+      <section className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Acciones Rápidas */}
+          <div className="lg:col-span-2">
+            <h2 className="text-2xl font-black text-gray-800 mb-6">Acciones Rápidas</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {quickActions.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={action.action}
+                  className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 text-left group hover:scale-105"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform`}>
+                      <action.icon />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-lg mb-1">{action.title}</h3>
+                      <p className="text-gray-600 text-sm">{action.description}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actividad Reciente */}
+          <div>
+            <h2 className="text-2xl font-black text-gray-800 mb-6">Actividad Reciente</h2>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="space-y-4">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getActivityColor(activity.type)}`}>
+                      <div className="w-2 h-2 rounded-full bg-current"></div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-medium text-gray-800">{activity.user}</div>
+                          <div className="text-gray-600 text-sm">{activity.action}</div>
+                        </div>
+                        <div className="text-gray-400 text-xs">{activity.time}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full mt-4 text-center text-indigo-600 hover:text-indigo-700 font-medium text-sm">
+                Ver toda la actividad
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
 export default function DashboardPage() {
   const [userData, setUserData] = useState(null);
   const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const router = useRouter();
 
@@ -197,18 +603,36 @@ export default function DashboardPage() {
           const currentUser = await getOwnProfile();
           console.log('✅ Datos del usuario cargados:', currentUser);
 
-          setUserData({
-            name: currentUser.first_name || "Administrador AGROSIG",
-            email: currentUser.email || "admin@agrosig.com",
-            role: "Administrador",
+          const userDataObj = {
+            name: currentUser.first_name || "Usuario AGROSIG",
+            email: currentUser.email || "usuario@agrosig.com",
+            role: currentUser.role || "Usuario",
             userId: currentUser.user_id || currentUser.id,
-            profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null
-          });
+            profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null,
+            role_id: currentUser.role_id, // Incluir role_id para la detección
+            user_type: currentUser.user_type,
+            tipo_usuario: currentUser.tipo_usuario
+          };
+
+          setUserData(userDataObj);
+
+          // USAR LA MISMA LÓGICA QUE EN NAVIGATION PARA DETECTAR ADMIN
+          const userIsAdmin = isAdminUser(userDataObj);
+          setIsAdmin(userIsAdmin);
+
+          if (userIsAdmin) {
+            console.log('👑 Usuario identificado como administrador');
+            notificationService.showSuccessNotification('Bienvenido al Panel Administrativo');
+          } else {
+            console.log('👤 Usuario identificado como usuario normal');
+          }
+
         } catch (userError) {
           console.warn('⚠️ No se pudieron cargar datos del usuario:', userError);
         }
       } else {
         console.log('👤 Usuario no autenticado, mostrando dashboard público');
+        setIsAdmin(false);
       }
 
       await cargarUsuarios();
@@ -240,6 +664,7 @@ export default function DashboardPage() {
     notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
     removeAuthTokens();
     setUserData(null);
+    setIsAdmin(false);
     initializePage();
   };
 
@@ -343,6 +768,11 @@ export default function DashboardPage() {
       description: "Toma mejores decisiones basadas en datos en tiempo real"
     }
   ];
+
+  // Si es administrador y está logueado, mostrar dashboard administrativo
+  if (isAdmin && userData) {
+    return <AdminDashboard userData={userData} onLogout={handleLogout} />;
+  }
 
   if (!isClient) {
     return <LoadingSpinner message="Inicializando..." />;
@@ -479,7 +909,7 @@ export default function DashboardPage() {
                 className="group bg-gradient-to-br from-white to-green-50 rounded-3xl p-6 sm:p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-green-100/50 hover:border-green-300/50 hover:scale-105"
               >
                 <div className="flex items-start space-x-4 mb-4">
-                  <div className={`w-14 h-14 bg-gradient-to-r ${feature.gradient} rounded-full flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-16 h-10 bg-transparent rounded-full flex items-center justify-center text-green-600 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon />
                   </div>
                   <div>

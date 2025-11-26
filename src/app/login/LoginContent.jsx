@@ -13,12 +13,13 @@ export default function LoginContent({ initialMessage = '' }) {
   const [isHovered, setIsHovered] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-  
+  const [isBackButtonHovered, setIsBackButtonHovered] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // Solo verificar autenticación en el cliente
     const authenticated = isAuthenticated();
     if (authenticated) {
@@ -32,6 +33,11 @@ export default function LoginContent({ initialMessage = '' }) {
       setShowSuccessAlert(true);
     }
   }, [router, initialMessage]);
+
+  // Función para volver al dashboard
+  const handleBackToDashboard = () => {
+    router.push('/');
+  };
 
   // Componente de Alerta de Éxito en Login
   const SuccessAlert = () => {
@@ -78,7 +84,7 @@ export default function LoginContent({ initialMessage = '' }) {
 
   const handleLogin = async (e) => {
     e?.preventDefault();
-    
+
     if (!email || !password) {
       setError("Por favor, ingresa email y contraseña");
       return;
@@ -92,15 +98,15 @@ export default function LoginContent({ initialMessage = '' }) {
     try {
       setError(null);
       setLoading(true);
-      
+
       await login(email, password);
       router.push('/dashboard');
-      
+
     } catch (err) {
       console.error('Error en login:', err);
-      
+
       let errorMessage = err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.";
-      
+
       if (errorMessage.includes('User not found')) {
         errorMessage = "Usuario no encontrado. Verifica tu email.";
       } else if (errorMessage.includes('Invalid password')) {
@@ -110,7 +116,7 @@ export default function LoginContent({ initialMessage = '' }) {
       } else if (errorMessage.includes('The email is already linked to this Google account')) {
         errorMessage = "El email está vinculado a una cuenta de Google.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -148,34 +154,68 @@ export default function LoginContent({ initialMessage = '' }) {
     );
   }
 
-  // ... (el resto de tu componente JSX permanece exactamente igual)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 p-4 relative overflow-hidden">
       {/* Renderizar alerta de éxito */}
       <SuccessAlert />
-      
+      <button
+        onClick={handleBackToDashboard}
+        onMouseEnter={() => setIsBackButtonHovered(true)}
+        onMouseLeave={() => setIsBackButtonHovered(false)}
+        className="fixed top-4 left-4 md:top-6 md:left-6 z-50 flex items-center space-x-2 md:space-x-3 bg-white/95 backdrop-blur-xl text-emerald-700 hover:text-emerald-900 hover:bg-white px-3 py-2.5 md:px-5 md:py-3.5 rounded-xl md:rounded-2xl font-semibold text-sm transition-all duration-300 shadow-xl hover:shadow-2xl border border-emerald-200/80 hover:border-emerald-300/90 hover:scale-105 group"
+      >
+        {/* Efecto de fondo animado */}
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl md:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+        {/* Icono con animación */}
+        <div className="relative z-10 transform group-hover:-translate-x-0.5 md:group-hover:-translate-x-1 transition-transform duration-300">
+          <svg
+            className="w-4 h-4 md:w-5 md:h-5 transition-all duration-300 text-emerald-500 group-hover:text-emerald-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+        </div>
+
+        {/* Texto - Oculto en mobile, visible en desktop */}
+        <span className="relative z-10 font-bold tracking-wide text-emerald-700 group-hover:text-emerald-900 transition-all duration-300 hidden md:inline">
+          Volver al Inicio
+        </span>
+
+        {/* Efecto de brillo al hover */}
+        <div className="absolute inset-0 rounded-xl md:rounded-2xl bg-gradient-to-r from-emerald-400/10 to-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </button>
+
+
       {/* Elementos decorativos de fondo con hojas */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-lime-200/30 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-100/20 rounded-full blur-3xl"></div>
-        
+
         {/* Patrón de hojas sutiles */}
         <div className="absolute inset-0 opacity-[0.02]">
           <div className="absolute top-20 left-10 transform rotate-12">
             <svg className="w-24 h-24 text-emerald-800" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z"/>
+              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z" />
             </svg>
           </div>
           <div className="absolute bottom-20 right-10 transform -rotate-45">
             <svg className="w-20 h-20 text-emerald-800" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z"/>
+              <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z" />
             </svg>
           </div>
         </div>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto relative z-10">
+      <div className="w-full max-w-6xl mx-auto relative z-10 mt-8 md:mt-0">
         <div className="flex flex-col lg:flex-row rounded-3xl shadow-xl overflow-hidden bg-white/90 backdrop-blur-md border border-emerald-200/60">
           {/* Formulario */}
           <div className="p-8 md:p-12 lg:p-16 w-full lg:w-1/2">
@@ -183,7 +223,7 @@ export default function LoginContent({ initialMessage = '' }) {
               {/* Header con Logo */}
               <div className="text-center mb-12">
                 <div className="flex justify-center mb-8">
-                  <div 
+                  <div
                     className="relative transition-all duration-500 hover:scale-105 transform"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
@@ -286,11 +326,10 @@ export default function LoginContent({ initialMessage = '' }) {
                         className="sr-only"
                         disabled={loading}
                       />
-                      <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
-                        rememberMe
+                      <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${rememberMe
                           ? 'bg-emerald-600 border-emerald-600 shadow-sm'
                           : 'bg-white border-emerald-400 group-hover:border-emerald-500'
-                      }`}>
+                        }`}>
                         {rememberMe && (
                           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -387,21 +426,21 @@ export default function LoginContent({ initialMessage = '' }) {
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-10 left-10 transform rotate-12">
                 <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z"/>
+                  <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z" />
                 </svg>
               </div>
               <div className="absolute bottom-10 right-10 transform -rotate-45">
                 <svg className="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L5 9.5V15.5L3 16V18L9 16.5V15.5L15 16.5V18L21 16V14L19 15.5V9.5L21 9Z"/>
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L5 9.5V15.5L3 16V18L9 16.5V15.5L15 16.5V18L21 16V14L19 15.5V9.5L21 9Z" />
                 </svg>
               </div>
               <div className="absolute top-1/2 left-1/4 transform rotate-90">
                 <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z"/>
+                  <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1.21-3.12C7.51 17.44 9.62 14 16 14c.35 0 .69.02 1.03.05L17 8z" />
                 </svg>
               </div>
             </div>
-            
+
             <div className="text-center relative z-10 text-white max-w-md">
               <div className="mb-8">
                 <div className="relative">

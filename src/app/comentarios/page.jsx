@@ -1,4 +1,4 @@
-// src/app/comentarios/page.jsx - VERSIÓN MEJORADA
+// src/app/comentarios/page.jsx - VERSIÓN MODIFICADA
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -217,8 +217,105 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Componente de Empty State
-const EmptyState = ({ userAuthenticated, onLoginRedirect }) => (
+// Componente para usuarios no logueados
+const LoginRequiredState = ({ onLoginRedirect }) => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+    <Navigation />
+    
+    <div className="mt-16 bg-white p-2 shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm min-h-[85vh] flex flex-col">
+      
+      {/* Header con gradiente profesional */}
+      <div className="bg-gradient-to-r from-green-700 to-green-800 px-8 py-6 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Comentarios de la Comunidad</h2>
+              <p className="text-green-100 text-sm">
+                Conecta con profesionales del sector - Inicia sesión para ver y participar en los comentarios
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={onLoginRedirect}
+              className="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-sm hover:shadow-md"
+            >
+              Iniciar Sesión
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Área de contenido para usuarios no logueados */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50/50">
+        <div className="text-center max-w-2xl">
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+            <div className="text-8xl mb-6 opacity-20 text-gray-400">💬</div>
+            
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+              Participa en la conversación
+            </h3>
+            
+            <p className="text-gray-600 text-lg mb-6 leading-relaxed">
+              Para ver los comentarios de la comunidad y compartir tus experiencias, 
+              necesitas iniciar sesión en tu cuenta.
+            </p>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-center space-x-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8 text-blue-600">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+                <div className="text-left">
+                  <p className="text-blue-800 font-semibold text-lg">
+                    Únete a la comunidad AGROSIG
+                  </p>
+                  <p className="text-blue-600">
+                    Comparte tus conocimientos y aprende de otros profesionales del sector agrícola
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={onLoginRedirect}
+                className="bg-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-sm hover:shadow-md text-lg flex items-center justify-center space-x-3"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                </svg>
+                <span>Iniciar Sesión</span>
+              </button>
+              
+              <button
+                onClick={() => window.location.href = '/registro'}
+                className="border-2 border-green-600 text-green-600 px-8 py-4 rounded-xl font-semibold hover:bg-green-50 transition-colors text-lg flex items-center justify-center space-x-3"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                </svg>
+                <span>Crear Cuenta</span>
+              </button>
+            </div>
+
+            <p className="text-gray-500 text-sm mt-6">
+              Al unirte, podrás comentar, responder y conectar con otros profesionales
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Componente de Empty State (solo para usuarios logueados)
+const EmptyState = ({ onLoginRedirect }) => (
   <div className="text-center py-16 h-full flex items-center justify-center">
     <div className="max-w-md">
       <div className="text-6xl mb-4 opacity-20 text-gray-400">💬</div>
@@ -226,19 +323,8 @@ const EmptyState = ({ userAuthenticated, onLoginRedirect }) => (
         Aún no hay comentarios
       </h3>
       <p className="text-gray-400 text-sm mb-6">
-        {userAuthenticated 
-          ? "Sé el primero en iniciar una conversación y compartir tus conocimientos con la comunidad"
-          : "Sé el primero en iniciar una conversación - Inicia sesión para comentar"
-        }
+        Sé el primero en iniciar una conversación y compartir tus conocimientos con la comunidad
       </p>
-      {!userAuthenticated && (
-        <button
-          onClick={onLoginRedirect}
-          className="bg-slate-700 text-white px-6 py-2 rounded-lg font-medium hover:bg-slate-800 transition-colors"
-        >
-          Iniciar Sesión para Comentar
-        </button>
-      )}
     </div>
   </div>
 );
@@ -269,15 +355,16 @@ export default function ComentariosPage() {
       setUserAuthenticated(authenticated);
       notificationService.init();
 
+      // Solo cargar datos si el usuario está autenticado
       if (authenticated) {
         await loadUserData();
+        await cargarComentarios();
+      } else {
+        setLoading(false);
       }
-
-      await cargarComentarios();
     } catch (error) {
       console.error('Error inicializando página:', error);
       notificationService.showErrorNotification('Error al cargar los comentarios: ' + error.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -343,7 +430,7 @@ export default function ComentariosPage() {
   }, [comentarios, scrollToBottom]);
 
   const handleLoginRedirect = () => {
-    notificationService.showInfoNotification('Por favor, inicia sesión para comentar');
+    notificationService.showInfoNotification('Por favor, inicia sesión para ver y participar en los comentarios');
     router.push('/login');
   };
 
@@ -352,7 +439,7 @@ export default function ComentariosPage() {
     removeAuthTokens();
     setUserAuthenticated(false);
     setUserData(null);
-    cargarComentarios();
+    setComentarios([]); // Limpiar comentarios al cerrar sesión
   };
 
   const agregarComentario = async () => {
@@ -443,6 +530,12 @@ export default function ComentariosPage() {
     return <LoadingSpinner />;
   }
 
+  // Si el usuario NO está autenticado, mostrar el estado de login requerido
+  if (!userAuthenticated) {
+    return <LoginRequiredState onLoginRedirect={handleLoginRedirect} />;
+  }
+
+  // A partir de aquí, solo se ejecuta si el usuario está autenticado
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
       <Navigation userData={userData} onLogout={handleLogout} />
@@ -462,10 +555,7 @@ export default function ComentariosPage() {
               <div>
                 <h2 className="text-2xl font-bold text-white">Comentarios de la Comunidad</h2>
                 <p className="text-green-100 text-sm">
-                  {userAuthenticated 
-                    ? "Comparte y conecta con profesionales del sector" 
-                    : "Conecta con profesionales del sector - Inicia sesión para comentar"
-                  }
+                  Comparte y conecta con profesionales del sector
                 </p>
               </div>
             </div>
@@ -473,14 +563,6 @@ export default function ComentariosPage() {
               <div className="text-white text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">
                 {comentarios.length} comentarios
               </div>
-              {!userAuthenticated && (
-                <button
-                  onClick={handleLoginRedirect}
-                  className="bg-white text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-sm"
-                >
-                  Iniciar Sesión
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -491,10 +573,7 @@ export default function ComentariosPage() {
           {/* Lista de Comentarios - Área Scrollable */}
           <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
             {comentarios.length === 0 ? (
-              <EmptyState 
-                userAuthenticated={userAuthenticated} 
-                onLoginRedirect={handleLoginRedirect} 
-              />
+              <EmptyState onLoginRedirect={handleLoginRedirect} />
             ) : (
               <div className="space-y-4 max-w-4xl mx-auto">
                 {comentarios.map((comentario) => (
@@ -517,95 +596,67 @@ export default function ComentariosPage() {
           </div>
 
           {/* Formulario de Nuevo Comentario */}
-          {userAuthenticated ? (
-            <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-white to-gray-50/50 flex-shrink-0">
-              <div className="flex items-start space-x-4 max-w-4xl mx-auto">
-                <div className="flex-shrink-0">
-                  <UserAvatar 
-                    user={{
-                      profileImage: userData?.profileImage,
-                      nombre: userData?.name,
-                      id: userData?.userId
-                    }} 
+          <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-white to-gray-50/50 flex-shrink-0">
+            <div className="flex items-start space-x-4 max-w-4xl mx-auto">
+              <div className="flex-shrink-0">
+                <UserAvatar 
+                  user={{
+                    profileImage: userData?.profileImage,
+                    nombre: userData?.name,
+                    id: userData?.userId
+                  }} 
+                />
+              </div>
+
+              <div className="flex-1">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Añadir un comentario
+                  </label>
+                  <textarea
+                    value={nuevoComentario}
+                    onChange={(e) => setNuevoComentario(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Comparte tus experiencias, preguntas o conocimientos con la comunidad agrícola..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-gray-700 placeholder-gray-500 text-base leading-relaxed transition-all duration-200 hover:border-gray-400 bg-white shadow-sm"
+                    rows="3"
                   />
                 </div>
 
-                <div className="flex-1">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Añadir un comentario
-                    </label>
-                    <textarea
-                      value={nuevoComentario}
-                      onChange={(e) => setNuevoComentario(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      placeholder="Comparte tus experiencias, preguntas o conocimientos con la comunidad agrícola..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-gray-700 placeholder-gray-500 text-base leading-relaxed transition-all duration-200 hover:border-gray-400 bg-white shadow-sm"
-                      rows="3"
-                    />
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs border border-gray-200">
+                      Ctrl + Enter para publicar
+                    </span>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs border border-gray-200">
-                        Ctrl + Enter para publicar
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={agregarComentario}
-                      disabled={!nuevoComentario.trim() || sending}
-                      className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm ${
-                        nuevoComentario.trim() && !sending
-                          ? 'bg-green-700 text-white hover:bg-green-800 hover:shadow-md'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {sending ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Publicando...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                          </svg>
-                          <span>Publicar comentario</span>
-                        </div>
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    onClick={agregarComentario}
+                    disabled={!nuevoComentario.trim() || sending}
+                    className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm ${
+                      nuevoComentario.trim() && !sending
+                        ? 'bg-green-700 text-white hover:bg-green-800 hover:shadow-md'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {sending ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Publicando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                        </svg>
+                        <span>Publicar comentario</span>
+                      </div>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-white to-gray-50/50 flex-shrink-0">
-              <div className="text-center py-4 max-w-4xl mx-auto">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center justify-center space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-blue-600">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                    </svg>
-                    <div className="text-left">
-                      <p className="text-blue-800 font-medium">
-                        Inicia sesión para comentar
-                      </p>
-                      <p className="text-blue-600 text-sm">
-                        Únete a la conversación y comparte tus experiencias
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleLoginRedirect}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
-                    >
-                      Iniciar Sesión
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

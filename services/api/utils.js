@@ -1,5 +1,5 @@
 // services/api/utils.js - CONFIGURACIÓN Y UTILIDADES (SOLO USO INTERNO)
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api-agrosig-backend.onrender.com").replace(/\/$/, '');
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, '');
 const ACCESS_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
