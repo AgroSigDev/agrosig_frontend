@@ -131,6 +131,16 @@ const Icons = {
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12l-4 4m4-4l-4-4" />
     </svg>
+  ),
+  Farm: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  ),
+  Crop: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+    </svg>
   )
 };
 
@@ -214,9 +224,8 @@ const UserStatsCard = ({ title, value, description, icon, color, trend }) => (
           <div className="text-gray-500 text-xs mt-1">{description}</div>
         )}
         {trend && (
-          <div className={`text-xs font-medium mt-2 ${
-            trend.direction === 'up' ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <div className={`text-xs font-medium mt-2 ${trend.direction === 'up' ? 'text-green-600' : 'text-red-600'
+            }`}>
             {trend.value} {trend.direction === 'up' ? '↗' : '↘'} {trend.label}
           </div>
         )}
@@ -241,6 +250,45 @@ const UserStatsGrid = ({ stats }) => (
         trend={stat.trend}
       />
     ))}
+  </div>
+);
+
+// Componente para mostrar parcelas
+const PlotCard = ({ plot }) => (
+  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+    <div className="flex items-start justify-between mb-4">
+      <div>
+        <h3 className="font-bold text-gray-800 text-lg mb-1">{plot.name}</h3>
+        <p className="text-gray-600 text-sm">{plot.location}</p>
+      </div>
+      <div className={`px-3 py-1 rounded-full text-xs font-medium ${plot.status === 'active' ? 'bg-green-100 text-green-800' :
+          plot.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-gray-100 text-gray-800'
+        }`}>
+        {plot.status === 'active' ? 'Activa' : plot.status === 'pending' ? 'Pendiente' : 'Inactiva'}
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <div className="text-gray-500 text-xs">Área</div>
+        <div className="font-semibold text-gray-800">{plot.area} ha</div>
+      </div>
+      <div>
+        <div className="text-gray-500 text-xs">Cultivo</div>
+        <div className="font-semibold text-gray-800">{plot.crop_type}</div>
+      </div>
+    </div>
+
+    <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex items-center space-x-1">
+        <Icons.Calendar className="w-4 h-4" />
+        <span>Creada {plot.created_at}</span>
+      </div>
+      <div className="text-xs text-gray-500">
+        Por: {plot.owner}
+      </div>
+    </div>
   </div>
 );
 
@@ -320,10 +368,12 @@ const AdminDashboard = ({ userData, onLogout }) => {
     totalUsers: 0,
     activeUsers: 0,
     inactiveUsers: 0,
+    totalPlots: 0,
+    activePlots: 0,
     systemHealth: 100
   });
 
-  const [recentActivities, setRecentActivities] = useState([]);
+  const [recentPlots, setRecentPlots] = useState([]);
   const [quickActions, setQuickActions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -344,16 +394,22 @@ const AdminDashboard = ({ userData, onLogout }) => {
       const activeUsers = usersData.filter(user => user.is_active === true || user.is_active === 1).length || 0;
       const inactiveUsers = usersData.filter(user => user.is_active === false || user.is_active === 0).length || 0;
 
+      // Generar datos de parcelas simulados (hasta que tengas el endpoint)
+      const plotsData = generateSamplePlotsData(usersData);
+      const totalPlots = plotsData.length;
+      const activePlots = plotsData.filter(plot => plot.status === 'active').length;
+
       setStats({
         totalUsers: totalUsers,
         activeUsers: activeUsers,
         inactiveUsers: inactiveUsers,
+        totalPlots: totalPlots,
+        activePlots: activePlots,
         systemHealth: calculateSystemHealth(totalUsers, activeUsers)
       });
 
-      // Generar actividad reciente basada en usuarios
-      const activities = generateRecentActivities(usersData);
-      setRecentActivities(activities);
+      // Tomar las últimas 4 parcelas como recientes
+      setRecentPlots(plotsData.slice(-4).reverse());
       
       setQuickActions([
         { 
@@ -366,27 +422,27 @@ const AdminDashboard = ({ userData, onLogout }) => {
         },
         { 
           id: 2, 
-          title: "Configuración", 
-          description: "Ajustes del sistema",
-          icon: Icons.Settings,
-          color: "from-purple-500 to-indigo-600",
-          action: () => handleQuickAction('settings')
+          title: "Gestión de Parcelas", 
+          description: "Ver y administrar parcelas",
+          icon: Icons.Farm,
+          color: "from-green-500 to-emerald-600",
+          action: () => handleQuickAction('plots')
         },
         { 
           id: 3, 
           title: "Analíticas", 
           description: "Reportes y estadísticas",
           icon: Icons.Analytics,
-          color: "from-green-500 to-emerald-600",
+          color: "from-purple-500 to-indigo-600",
           action: () => handleQuickAction('analytics')
         },
         { 
           id: 4, 
-          title: "Base de Datos", 
-          description: "Gestión de datos",
-          icon: Icons.Database,
+          title: "Configuración", 
+          description: "Ajustes del sistema",
+          icon: Icons.Settings,
           color: "from-orange-500 to-red-600",
-          action: () => handleQuickAction('database')
+          action: () => handleQuickAction('settings')
         }
       ]);
     } catch (error) {
@@ -397,6 +453,31 @@ const AdminDashboard = ({ userData, onLogout }) => {
     }
   };
 
+  // Función para generar datos de parcelas de ejemplo
+  const generateSamplePlotsData = (users) => {
+    const cropTypes = ['Maíz', 'Trigo', 'Soja', 'Arroz', 'Café', 'Cacao', 'Banano', 'Papa'];
+    const locations = ['Santa Cruz', 'La Paz', 'Cochabamba', 'Chuquisaca', 'Tarija', 'Pando', 'Beni', 'Oruro'];
+    
+    let plotCounter = 0; // Contador único para parcelas
+    
+    return users.flatMap((user, userIndex) => {
+      const userPlotsCount = Math.floor(Math.random() * 3) + 1; // 1-3 parcelas por usuario
+      return Array.from({ length: userPlotsCount }, (_, plotIndex) => {
+        plotCounter++; // Incrementar contador único
+        return {
+          id: `plot-${plotCounter}`, // ID único para cada parcela
+          name: `Parcela ${plotIndex + 1} - ${user.first_name}`,
+          location: locations[Math.floor(Math.random() * locations.length)],
+          area: (Math.random() * 50 + 5).toFixed(1), // 5-55 hectáreas
+          crop_type: cropTypes[Math.floor(Math.random() * cropTypes.length)],
+          status: Math.random() > 0.3 ? 'active' : 'pending',
+          owner: `${user.first_name} ${user.paternal_surname || ''}`.trim(),
+          created_at: `${Math.floor(Math.random() * 30) + 1} días`
+        };
+      });
+    });
+  };
+
   // Función para calcular salud del sistema basada en usuarios activos
   const calculateSystemHealth = (total, active) => {
     if (total === 0) return 100;
@@ -404,42 +485,8 @@ const AdminDashboard = ({ userData, onLogout }) => {
     return Math.round(healthPercentage);
   };
 
-  // Función para generar actividad reciente basada en usuarios
-  const generateRecentActivities = (users) => {
-    const activities = [];
-    
-    // Tomar los últimos 4 usuarios registrados como actividad reciente
-    const recentUsers = users.slice(-4).reverse();
-    
-    recentUsers.forEach((user, index) => {
-      const timeAgo = index === 0 ? "Hace 5 min" : 
-                     index === 1 ? "Hace 12 min" : 
-                     index === 2 ? "Hace 30 min" : "Hace 45 min";
-      
-      activities.push({
-        id: user.id || index + 1,
-        user: `${user.first_name} ${user.paternal_surname || ''}`.trim(),
-        action: "Nuevo registro en el sistema",
-        time: timeAgo,
-        type: "success"
-      });
-    });
-
-    return activities;
-  };
-
   const handleQuickAction = (action) => {
     notificationService.showInfoNotification(`Acción administrativa: ${action} - Funcionalidad en desarrollo`);
-  };
-
-  const getActivityColor = (type) => {
-    const colors = {
-      success: 'text-green-600 bg-green-50',
-      warning: 'text-yellow-600 bg-yellow-50',
-      error: 'text-red-600 bg-red-50',
-      info: 'text-blue-600 bg-blue-50'
-    };
-    return colors[type] || colors.info;
   };
 
   // Estadísticas de usuarios REALES para el dashboard administrativo
@@ -459,6 +506,14 @@ const AdminDashboard = ({ userData, onLogout }) => {
       icon: Icons.UserCheck,
       color: 'from-green-500 to-emerald-600',
       trend: { value: '+8%', direction: 'up', label: 'esta semana' }
+    },
+    {
+      label: 'Parcelas Totales',
+      value: stats.totalPlots,
+      description: 'Parcelas registradas',
+      icon: Icons.Farm,
+      color: 'from-purple-500 to-indigo-600',
+      trend: { value: '+15%', direction: 'up', label: 'este mes' }
     },
     {
       label: 'Salud del Sistema',
@@ -522,15 +577,33 @@ const AdminDashboard = ({ userData, onLogout }) => {
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Acciones Rápidas */}
+          {/* Parcelas Recientes - IZQUIERDA */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-black text-gray-800 mb-6">Acciones Rápidas</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-black text-gray-800">Parcelas Recientes</h2>
+              <button 
+                onClick={() => handleQuickAction('ver-parcelas')}
+                className="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+              >
+                Ver todas las parcelas
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {recentPlots.map((plot) => (
+                <PlotCard key={plot.id} plot={plot} />
+              ))}
+            </div>
+          </div>
+
+          {/* Acciones Rápidas - DERECHA */}
+          <div>
+            <h2 className="text-2xl font-black text-gray-800 mb-6">Acciones Rápidas</h2>
+            <div className="space-y-6">
               {quickActions.map((action) => (
                 <button
                   key={action.id}
                   onClick={action.action}
-                  className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 text-left group hover:scale-105"
+                  className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 text-left group hover:scale-105 w-full"
                 >
                   <div className="flex items-start space-x-4">
                     <div className={`w-12 h-12 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform`}>
@@ -543,34 +616,6 @@ const AdminDashboard = ({ userData, onLogout }) => {
                   </div>
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Actividad Reciente */}
-          <div>
-            <h2 className="text-2xl font-black text-gray-800 mb-6">Actividad Reciente</h2>
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-              <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getActivityColor(activity.type)}`}>
-                      <div className="w-2 h-2 rounded-full bg-current"></div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium text-gray-800">{activity.user}</div>
-                          <div className="text-gray-600 text-sm">{activity.action}</div>
-                        </div>
-                        <div className="text-gray-400 text-xs">{activity.time}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full mt-4 text-center text-indigo-600 hover:text-indigo-700 font-medium text-sm">
-                Ver toda la actividad
-              </button>
             </div>
           </div>
         </div>
@@ -601,7 +646,7 @@ export default function DashboardPage() {
       setLoading(true);
 
       const status = checkAuthStatus();
-      
+
       if (status.isAuthenticated) {
         console.log('🔐 Usuario autenticado, cargando datos...');
         notificationService.init();
@@ -643,11 +688,11 @@ export default function DashboardPage() {
       }
 
       await cargarUsuarios();
-      
+
     } catch (error) {
       console.error('❌ Error inicializando página:', error);
       setError(error.message || 'Error al cargar el dashboard');
-      
+
       if (checkAuthStatus().isAuthenticated) {
         notificationService.showErrorNotification('Error al cargar los datos: ' + error.message);
       }
@@ -679,10 +724,22 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  const handleDownload = () => {
-    notificationService.showSuccessNotification('Redirigiendo a la tienda de aplicaciones...');
-    window.open('https://play.google.com/store/apps/details?id=com.agrosig', '_blank');
-  };
+const handleDownload = () => {
+  // Ruta al archivo APK en la carpeta public
+  const apkUrl = 'apk/agrosig_aplication.apk';
+  
+  // Crear un enlace temporal para descargar
+  const link = document.createElement('a');
+  link.href = apkUrl;
+  link.download = 'AGROSIG_App.apk'; // Nombre amigable para el usuario
+  link.style.display = 'none';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  notificationService.showSuccessNotification('Descargando AGROSIG App para Android...');
+};
 
   const handleRegister = () => {
     router.push('/registro');
@@ -808,7 +865,7 @@ export default function DashboardPage() {
         <div className="absolute inset-0 bg-black/5"></div>
         <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-16 h-16 bg-emerald-400/20 rounded-full animate-bounce"></div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 max-w-7xl mx-auto">
             {/* Contenido principal */}
@@ -853,7 +910,7 @@ export default function DashboardPage() {
                   </div>
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
-                
+
                 {!userData && (
                   <button
                     onClick={handleLogin}
@@ -991,7 +1048,7 @@ export default function DashboardPage() {
               </div>
               <span className="text-2xl">↓</span>
             </button>
-            
+
             {!userData && (
               <button
                 onClick={handleRegister}

@@ -43,13 +43,13 @@ export {
   updateUserRole,
   deleteUser,
   getUserById,
-  
+
   // Funciones para usuarios normales (gestión de perfil propio)
   getOwnProfile,
   updateOwnProfile,
   updateOwnPassword,
   updateOwnProfileImage,
-  
+
   // Utilidades
   checkAdminPermissions,
   getUserService
@@ -62,3 +62,7 @@ export {
   updateComment,
   deleteComment
 } from './comments';
+
+export {
+  getCrops
+} from './crops';
