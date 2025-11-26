@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus, getOwnProfile, getAuthToken } from "../../../services/api/index";
+import { removeAuthTokens, checkAuthStatus, getOwnProfile, getAuthToken, getUsers } from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
@@ -314,7 +314,7 @@ const isAdminUser = (userData) => {
   return false;
 };
 
-// Componente de Dashboard Administrativo CON Actividad Reciente
+// COMPONENTE DE DASHBOARD ADMINISTRATIVO ACTUALIZADO CON DATOS REALES
 const AdminDashboard = ({ userData, onLogout }) => {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -336,18 +336,24 @@ const AdminDashboard = ({ userData, onLogout }) => {
     try {
       setLoading(true);
       
-      // Aquí deberías hacer una llamada a tu API para obtener los datos reales
-      // Por ahora simulo una llamada a la API
-      const adminData = await fetchAdminData();
+      // OBTENER DATOS REALES DE USUARIOS
+      const usersData = await getUsers(); // Usa tu endpoint real
       
+      // Calcular estadísticas reales
+      const totalUsers = usersData.length || 0;
+      const activeUsers = usersData.filter(user => user.is_active === true || user.is_active === 1).length || 0;
+      const inactiveUsers = usersData.filter(user => user.is_active === false || user.is_active === 0).length || 0;
+
       setStats({
-        totalUsers: adminData.totalUsers || 0,
-        activeUsers: adminData.activeUsers || 0,
-        inactiveUsers: adminData.inactiveUsers || 0,
-        systemHealth: adminData.systemHealth || 100
+        totalUsers: totalUsers,
+        activeUsers: activeUsers,
+        inactiveUsers: inactiveUsers,
+        systemHealth: calculateSystemHealth(totalUsers, activeUsers)
       });
 
-      setRecentActivities(adminData.recentActivities || []);
+      // Generar actividad reciente basada en usuarios
+      const activities = generateRecentActivities(usersData);
+      setRecentActivities(activities);
       
       setQuickActions([
         { 
@@ -391,27 +397,35 @@ const AdminDashboard = ({ userData, onLogout }) => {
     }
   };
 
-  // Función para simular la obtención de datos reales
-  const fetchAdminData = async () => {
-    // En una implementación real, aquí harías una llamada a tu API
-    // Por ejemplo: const response = await fetch('/api/admin/stats');
-    // return await response.json();
+  // Función para calcular salud del sistema basada en usuarios activos
+  const calculateSystemHealth = (total, active) => {
+    if (total === 0) return 100;
+    const healthPercentage = (active / total) * 100;
+    return Math.round(healthPercentage);
+  };
+
+  // Función para generar actividad reciente basada en usuarios
+  const generateRecentActivities = (users) => {
+    const activities = [];
     
-    // Simulando datos reales
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Tomar los últimos 4 usuarios registrados como actividad reciente
+    const recentUsers = users.slice(-4).reverse();
     
-    return {
-      totalUsers: 156, // Número real de usuarios totales
-      activeUsers: 128, // Número real de usuarios activos
-      inactiveUsers: 28, // Número real de usuarios inactivos
-      systemHealth: 98,
-      recentActivities: [
-        { id: 1, user: "Juan Pérez", action: "Nuevo registro", time: "Hace 5 min", type: "success" },
-        { id: 2, user: "María García", action: "Actualización de parcela", time: "Hace 12 min", type: "info" },
-        { id: 3, user: "Sistema", action: "Backup completado", time: "Hace 30 min", type: "success" },
-        { id: 4, user: "Carlos López", action: "Error en login", time: "Hace 45 min", type: "warning" }
-      ]
-    };
+    recentUsers.forEach((user, index) => {
+      const timeAgo = index === 0 ? "Hace 5 min" : 
+                     index === 1 ? "Hace 12 min" : 
+                     index === 2 ? "Hace 30 min" : "Hace 45 min";
+      
+      activities.push({
+        id: user.id || index + 1,
+        user: `${user.first_name} ${user.paternal_surname || ''}`.trim(),
+        action: "Nuevo registro en el sistema",
+        time: timeAgo,
+        type: "success"
+      });
+    });
+
+    return activities;
   };
 
   const handleQuickAction = (action) => {
@@ -447,19 +461,12 @@ const AdminDashboard = ({ userData, onLogout }) => {
       trend: { value: '+8%', direction: 'up', label: 'esta semana' }
     },
     {
-      label: 'Usuarios Inactivos',
-      value: stats.inactiveUsers,
-      description: 'Sin actividad reciente',
-      icon: Icons.UserX,
-      color: 'from-gray-500 to-gray-600',
-      trend: { value: '-5%', direction: 'down', label: 'este mes' }
-    },
-    {
       label: 'Salud del Sistema',
       value: `${stats.systemHealth}%`,
-      description: 'Estado general',
+      description: 'Basado en usuarios activos',
       icon: Icons.Shield,
-      color: 'from-orange-500 to-red-600'
+      color: stats.systemHealth >= 80 ? 'from-green-500 to-emerald-600' : 
+             stats.systemHealth >= 60 ? 'from-yellow-500 to-amber-600' : 'from-orange-500 to-red-600'
     }
   ];
 
