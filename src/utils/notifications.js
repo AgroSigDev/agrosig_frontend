@@ -174,6 +174,11 @@ class NotificationService {
     await this.showNotification('Información', message, 'info');
   }
 
+  // Notificación de advertencia - MÉTODO AGREGADO
+  async showWarningNotification(message) {
+    await this.showNotification('Advertencia', message, 'warning');
+  }
+
   // Notificación principal
   async showNotification(title, message, type = 'info') {
     // Notificación del navegador
@@ -181,6 +186,7 @@ class NotificationService {
       try {
         const icon = type === 'success' ? '/icons/success.png' : 
                     type === 'error' ? '/icons/error.png' : 
+                    type === 'warning' ? '/icons/warning.png' :
                     '/icons/info.png';
 
         await this.registration.showNotification(title, {
@@ -203,8 +209,9 @@ class NotificationService {
   // Notificación de fallback
   showFallbackNotification(title, message, type) {
     if (typeof window !== 'undefined') {
-      const emoji = type === 'success' ? 'excelente' : 
-                   type === 'error' ? 'error' : 'info';
+      const emoji = type === 'success' ? '✅' : 
+                   type === 'error' ? '❌' : 
+                   type === 'warning' ? '⚠️' : 'ℹ️';
       
       // Puedes usar alert o console.log como fallback
       console.log(`${emoji} ${title}: ${message}`);
@@ -228,7 +235,8 @@ class NotificationService {
 
     const toast = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-500' : 
-                   type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+                   type === 'error' ? 'bg-red-500' : 
+                   type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
     
     toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
     toast.innerHTML = `

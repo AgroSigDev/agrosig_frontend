@@ -678,12 +678,11 @@ const AdminDashboard = ({ userData, onLogout }) => {
                       {crop.harvest_date ? new Date(crop.harvest_date).toLocaleDateString('es-ES') : 'No cosechado'}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        crop.is_active === true || crop.is_active === 1 ? 'bg-green-100 text-green-800' : 
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${crop.is_active === true || crop.is_active === 1 ? 'bg-green-100 text-green-800' :
                         crop.harvest_date ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {crop.is_active === true || crop.is_active === 1 ? 'Activo' : 
-                         crop.harvest_date ? 'Cosechado' : 'Inactivo'}
+                        }`}>
+                        {crop.is_active === true || crop.is_active === 1 ? 'Activo' :
+                          crop.harvest_date ? 'Cosechado' : 'Inactivo'}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">
@@ -749,9 +748,8 @@ const AdminDashboard = ({ userData, onLogout }) => {
                     <h4 className="font-medium text-gray-800 text-sm">{plot.plot_name}</h4>
                     <p className="text-gray-500 text-xs">{plot.location}</p>
                   </div>
-                  <div className={`w-2 h-2 rounded-full ${
-                    plot.is_active ? 'bg-green-500' : 'bg-gray-400'
-                  }`}></div>
+                  <div className={`w-2 h-2 rounded-full ${plot.is_active ? 'bg-green-500' : 'bg-gray-400'
+                    }`}></div>
                 </div>
               ))}
             </div>
@@ -777,7 +775,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
             <Icons.UserX className="w-6 h-6" />
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -800,9 +798,8 @@ const AdminDashboard = ({ userData, onLogout }) => {
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">{user.email}</td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {user.is_active ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
@@ -815,7 +812,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
             </table>
           </div>
         </div>
-        
+
         <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
           <div className="text-sm text-gray-600">
             Total: {usersData.length} usuarios
@@ -847,7 +844,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
             <Icons.UserX className="w-6 h-6" />
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {plots.map((plot) => (
@@ -857,13 +854,12 @@ const AdminDashboard = ({ userData, onLogout }) => {
                     <h3 className="font-bold text-gray-800">{plot.plot_name}</h3>
                     <p className="text-gray-600 text-sm">{plot.location}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    plot.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${plot.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {plot.is_active ? 'Activa' : 'Inactiva'}
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                   <div>
                     <div className="text-gray-500">Área</div>
@@ -876,7 +872,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-xs text-gray-500">
                   ID: {plot.plot_id} • Creado: {plot.created_at ? new Date(plot.created_at).toLocaleDateString('es-ES') : 'N/A'}
                 </div>
@@ -884,7 +880,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
           <div className="text-sm text-gray-600">
             Total: {plots.length} parcelas
@@ -916,11 +912,11 @@ const AdminDashboard = ({ userData, onLogout }) => {
             <Icons.UserX className="w-6 h-6" />
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <CropsTable crops={crops} loading={cropsLoading} />
         </div>
-        
+
         <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
           <div className="text-sm text-gray-600">
             Total: {crops.length} cultivos
@@ -988,7 +984,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
       {/* Contenido Principal Mejorado */}
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
+
           {/* Barra Lateral con Acciones Rápidas ACTUALIZADAS */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
@@ -1071,6 +1067,9 @@ const AdminDashboard = ({ userData, onLogout }) => {
   );
 };
 
+
+
+
 export default function DashboardPage() {
   const [userData, setUserData] = useState(null);
   const [isClient, setIsClient] = useState(false);
@@ -1078,6 +1077,7 @@ export default function DashboardPage() {
   const [error, setError] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const router = useRouter();
 
@@ -1172,18 +1172,40 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  const handleDownload = () => {
-    const apkUrl = 'apk/agrosig_aplication.apk';
-    const link = document.createElement('a');
-    link.href = apkUrl;
-    link.download = 'Agrosig.apk';
-    link.style.display = 'none';
+  // Función handleDownload actualizada y corregida
+  const handleDownload = async () => {
+    if (!userData) {
+      notificationService.showWarningNotification('Debes iniciar sesión para descargar la aplicación AGROSIG');
+      router.push('/login');
+      return;
+    }
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setDownloading(true);
 
-    notificationService.showSuccessNotification('Descargando AGROSIG App para Android...');
+    try {
+      // Simular un pequeño delay para mejor UX
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const apkUrl = '/apk/agrosig_aplication.apk';
+      const link = document.createElement('a');
+      link.href = apkUrl;
+      link.download = 'Agrosig.apk';
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      notificationService.showSuccessNotification('¡Descarga iniciada! AGROSIG App se está descargando.');
+
+      // Opcional: Registrar la descarga
+      console.log(`Usuario ${userData.email} descargó la app`);
+    } catch (error) {
+      console.error('Error en la descarga:', error);
+      notificationService.showErrorNotification('Error al iniciar la descarga. Por favor, intenta nuevamente.');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const handleRegister = () => {
@@ -1351,27 +1373,39 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
                 <button
                   onClick={handleDownload}
-                  className="bg-white text-gray-800 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 flex items-center justify-center space-x-3 sm:space-x-4 group w-full sm:w-auto sm:max-w-md mx-auto lg:mx-0"
+                  disabled={downloading}
+                  className={`bg-white text-gray-800 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 group w-full sm:w-auto sm:max-w-md mx-auto lg:mx-0 ${downloading
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-gray-50 hover:shadow-3xl hover:scale-105'
+                    }`}
                 >
-                  <div className="text-left">
-                    <div className="text-sm opacity-70">Disponible ahora</div>
-                    <div className="font-black text-xl">DESCARGAR APP</div>
-                  </div>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  {downloading ? (
+                    <div className="flex items-center space-x-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-800 border-t-transparent"></div>
+                      <div className="text-left">
+                        <div className="text-sm opacity-70">Descargando...</div>
+                        <div className="font-black text-xl">POR FAVOR ESPERA</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-left">
+                        <div className="text-sm opacity-70">
+                          {userData ? 'Disponible ahora' : 'Inicia sesión para descargar'}
+                        </div>
+                        <div className="font-black text-xl">
+                          {userData ? 'DESCARGAR APP' : 'INICIAR SESIÓN'}
+                        </div>
+                      </div>
+                      <span className={`transition-transform ${userData ? 'group-hover:animate-bounce' : 'group-hover:translate-x-1'
+                        }`}>
+                        {userData ? '↓' : '→'}
+                      </span>
+                    </>
+                  )}
                 </button>
 
-                {!userData && (
-                  <button
-                    onClick={handleLogin}
-                    className="border-2 border-white text-white px-6 sm:px-10 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg hover:bg-white hover:text-green-800 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 flex items-center justify-center space-x-3 sm:space-x-4 group w-full sm:w-auto sm:max-w-md mx-auto lg:mx-0"
-                  >
-                    <div className="text-left">
-                      <div className="text-sm opacity-90">¿Ya tienes cuenta?</div>
-                      <div className="font-black text-xl">INICIAR SESIÓN</div>
-                    </div>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </button>
-                )}
+
               </div>
             </div>
 
@@ -1489,13 +1523,35 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto">
             <button
               onClick={handleDownload}
-              className="bg-white text-green-800 px-8 sm:px-16 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-2xl hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 flex items-center justify-center space-x-3 sm:space-x-4 w-full sm:w-auto"
+              disabled={downloading}
+              className={`bg-white text-green-800 px-8 sm:px-16 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 w-full sm:w-auto ${downloading
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-gray-50 hover:shadow-3xl hover:scale-105'
+                }`}
             >
-              <div className="text-left">
-                <div className="text-sm opacity-70">Descargar ahora</div>
-                <div className="font-black">OBTENER LA APP</div>
-              </div>
-              <span className="text-2xl">↓</span>
+              {downloading ? (
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-green-800 border-t-transparent"></div>
+                  <div className="text-left">
+                    <div className="text-sm opacity-70">Descargando...</div>
+                    <div className="font-black">POR FAVOR ESPERA</div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-left">
+                    <div className="text-sm opacity-70">
+                      {userData ? 'Descargar ahora' : 'Inicia sesión para descargar'}
+                    </div>
+                    <div className="font-black">
+                      {userData ? 'OBTENER LA APP' : 'INICIAR SESIÓN'}
+                    </div>
+                  </div>
+                  <span className="text-2xl">
+                    {userData ? '↓' : '→'}
+                  </span>
+                </>
+              )}
             </button>
 
             {!userData && (
