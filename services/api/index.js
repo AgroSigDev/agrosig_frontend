@@ -66,3 +66,7 @@ export {
 export {
   getCrops
 } from './crops';
+
+export {
+  getPlot,
+} from './plots'

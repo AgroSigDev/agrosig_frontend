@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeAuthTokens, checkAuthStatus, getOwnProfile, getAuthToken, getUsers } from "../../../services/api/index";
+import { removeAuthTokens, checkAuthStatus, getOwnProfile, getAuthToken, getUsers, getCrops, getPlot } from "../../../services/api/index";
 import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
@@ -186,33 +186,6 @@ const ErrorDisplay = ({ message, onRetry }) => (
   </div>
 );
 
-// Componente de Avatar mejorado
-const UserAvatar = ({ user, size = "w-12 h-12", className = "" }) => {
-  if (user?.profileImage) {
-    return (
-      <div className={`${size} ${className} relative`}>
-        <img
-          src={user.profileImage}
-          alt={`Avatar de ${user.name}`}
-          className="w-full h-full rounded-xl object-cover shadow-lg border-2 border-white"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
-        <div className={`absolute inset-0 ${getColorFromId(user.userId || 0)} rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg border-2 border-white hidden`}>
-          {getInitialFromName(user.name)}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`${size} ${className} ${getColorFromId(user?.userId || 0)} rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg border-2 border-white`}>
-      {getInitialFromName(user?.name)}
-    </div>
-  );
-};
-
 // COMPONENTES REUTILIZABLES PARA ESTADÍSTICAS DE USUARIOS
 const UserStatsCard = ({ title, value, description, icon, color, trend }) => (
   <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
@@ -253,19 +226,17 @@ const UserStatsGrid = ({ stats }) => (
   </div>
 );
 
-// Componente para mostrar parcelas
+// Componente para mostrar parcelas - CORREGIDO con campos reales del backend
 const PlotCard = ({ plot }) => (
   <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
     <div className="flex items-start justify-between mb-4">
       <div>
-        <h3 className="font-bold text-gray-800 text-lg mb-1">{plot.name}</h3>
+        <h3 className="font-bold text-gray-800 text-lg mb-1">{plot.plot_name}</h3>
         <p className="text-gray-600 text-sm">{plot.location}</p>
       </div>
-      <div className={`px-3 py-1 rounded-full text-xs font-medium ${plot.status === 'active' ? 'bg-green-100 text-green-800' :
-          plot.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-gray-100 text-gray-800'
+      <div className={`px-3 py-1 rounded-full text-xs font-medium ${plot.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
         }`}>
-        {plot.status === 'active' ? 'Activa' : plot.status === 'pending' ? 'Pendiente' : 'Inactiva'}
+        {plot.is_active ? 'Activa' : 'Inactiva'}
       </div>
     </div>
 
@@ -275,22 +246,97 @@ const PlotCard = ({ plot }) => (
         <div className="font-semibold text-gray-800">{plot.area} ha</div>
       </div>
       <div>
-        <div className="text-gray-500 text-xs">Cultivo</div>
-        <div className="font-semibold text-gray-800">{plot.crop_type}</div>
+        <div className="text-gray-500 text-xs">Coordenadas</div>
+        <div className="font-semibold text-gray-800 text-xs">
+          {plot.lat?.toFixed(4)}, {plot.lng?.toFixed(4)}
+        </div>
       </div>
     </div>
 
     <div className="flex items-center justify-between text-sm text-gray-600">
       <div className="flex items-center space-x-1">
         <Icons.Calendar className="w-4 h-4" />
-        <span>Creada {plot.created_at}</span>
+        <span>
+          {new Date(plot.created_at).toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          })}
+        </span>
       </div>
       <div className="text-xs text-gray-500">
-        Por: {plot.owner}
+        Por: {plot.first_name} {plot.paternal_surname}
+      </div>
+    </div>
+
+    {/* Información adicional */}
+    <div className="mt-3 pt-3 border-t border-gray-100">
+      <div className="text-xs text-gray-500">
+        ID: {plot.plot_id} • User: {plot.user_id}
       </div>
     </div>
   </div>
 );
+
+// Componente para mostrar crops en tabla
+const CropsTable = ({ crops, loading }) => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-200 border-t-emerald-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">Cultivos Recientes</h3>
+
+      {crops.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          No hay cultivos registrados
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Tipo</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Fecha Siembra</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Estado</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Área</th>
+              </tr>
+            </thead>
+            <tbody>
+              {crops.slice(0, 5).map((crop) => (
+                <tr key={crop.crop_id || crop.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-sm text-gray-800">{crop.crop_type}</td>
+                  <td className="py-3 px-4 text-sm text-gray-600">
+                    {crop.planting_date || 'No especificada'}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${crop.status === 'active' ? 'bg-green-100 text-green-800' :
+                      crop.status === 'harvested' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                      {crop.status === 'active' ? 'Activo' :
+                        crop.status === 'harvested' ? 'Cosechado' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600">
+                    {crop.area ? `${crop.area} ha` : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // FUNCIÓN PARA DETECTAR ADMIN - Misma lógica que en Navigation
 const isAdminUser = (userData) => {
@@ -362,7 +408,7 @@ const isAdminUser = (userData) => {
   return false;
 };
 
-// COMPONENTE DE DASHBOARD ADMINISTRATIVO ACTUALIZADO CON DATOS REALES
+// COMPONENTE DE DASHBOARD ADMINISTRATIVO MEJORADO
 const AdminDashboard = ({ userData, onLogout }) => {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -370,34 +416,107 @@ const AdminDashboard = ({ userData, onLogout }) => {
     inactiveUsers: 0,
     totalPlots: 0,
     activePlots: 0,
-    systemHealth: 100
+    totalCrops: 0,
+    activeCrops: 0
   });
 
   const [recentPlots, setRecentPlots] = useState([]);
+  const [crops, setCrops] = useState([]);
+  const [plots, setPlots] = useState([]);
   const [quickActions, setQuickActions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cropsLoading, setCropsLoading] = useState(false);
+  const [plotsLoading, setPlotsLoading] = useState(false);
+  const [usersData, setUsersData] = useState([]);
+  const [activeModal, setActiveModal] = useState(null); // 'users', 'plots', 'crops', null
 
-  useEffect(() => {
-    // Cargar datos administrativos reales
-    loadAdminData();
-  }, []);
+  // Cargar datos de usuarios
+  const loadUsersData = async () => {
+    try {
+      console.log('👥 Cargando datos de usuarios...');
+      const users = await getUsers();
+      console.log('✅ Usuarios cargados:', users);
+      setUsersData(users || []);
+      return users || [];
+    } catch (error) {
+      console.error('❌ Error cargando usuarios:', error);
+      setUsersData([]);
+      return [];
+    }
+  };
+
+  // Funciones para cargar crops y plots
+  const loadCropsData = async () => {
+    try {
+      setCropsLoading(true);
+      console.log('🌱 Cargando datos de cultivos...');
+      const cropsData = await getCrops(1, 10);
+      console.log('✅ Cultivos cargados:', cropsData);
+
+      if (cropsData && cropsData.crops) {
+        setCrops(cropsData.crops);
+        return cropsData.crops;
+      } else {
+        setCrops(cropsData || []);
+        return cropsData || [];
+      }
+    } catch (error) {
+      console.error('❌ Error cargando cultivos:', error);
+      notificationService.showErrorNotification('Error al cargar los cultivos');
+      setCrops([]);
+      return [];
+    } finally {
+      setCropsLoading(false);
+    }
+  };
+
+  const loadPlotsData = async () => {
+    try {
+      setPlotsLoading(true);
+      console.log('🗺️ Cargando datos de parcelas...');
+      const plotsData = await getPlot();
+      console.log('✅ Parcelas cargadas:', plotsData);
+
+      const plotsArray = Array.isArray(plotsData) ? plotsData : [];
+      setPlots(plotsArray);
+      setRecentPlots(plotsArray.slice(-4).reverse());
+      return plotsArray;
+    } catch (error) {
+      console.error('❌ Error cargando parcelas:', error);
+      notificationService.showErrorNotification('Error al cargar las parcelas');
+      setPlots([]);
+      setRecentPlots([]);
+      return [];
+    } finally {
+      setPlotsLoading(false);
+    }
+  };
 
   const loadAdminData = async () => {
     try {
       setLoading(true);
-      
-      // OBTENER DATOS REALES DE USUARIOS
-      const usersData = await getUsers(); // Usa tu endpoint real
-      
-      // Calcular estadísticas reales
-      const totalUsers = usersData.length || 0;
-      const activeUsers = usersData.filter(user => user.is_active === true || user.is_active === 1).length || 0;
-      const inactiveUsers = usersData.filter(user => user.is_active === false || user.is_active === 0).length || 0;
+      console.log('🚀 Iniciando carga de datos administrativos...');
 
-      // Generar datos de parcelas simulados (hasta que tengas el endpoint)
-      const plotsData = generateSamplePlotsData(usersData);
+      const [users, cropsData, plotsData] = await Promise.all([
+        loadUsersData(),
+        loadCropsData(),
+        loadPlotsData()
+      ]);
+
+      console.log('📊 Datos cargados:', {
+        users: users.length,
+        crops: cropsData.length,
+        plots: plotsData.length
+      });
+
+      // Calcular estadísticas
       const totalPlots = plotsData.length;
-      const activePlots = plotsData.filter(plot => plot.status === 'active').length;
+      const activePlots = plotsData.filter(plot => plot.is_active === true || plot.is_active === 1).length;
+      const totalCrops = cropsData.length;
+      const activeCrops = cropsData.filter(crop => crop.is_active === true || crop.is_active === 1).length;
+      const totalUsers = users.length;
+      const activeUsers = users.filter(user => user.is_active === true || user.is_active === 1).length;
+      const inactiveUsers = users.filter(user => user.is_active === false || user.is_active === 0).length;
 
       setStats({
         totalUsers: totalUsers,
@@ -405,91 +524,78 @@ const AdminDashboard = ({ userData, onLogout }) => {
         inactiveUsers: inactiveUsers,
         totalPlots: totalPlots,
         activePlots: activePlots,
-        systemHealth: calculateSystemHealth(totalUsers, activeUsers)
+        totalCrops: totalCrops,
+        activeCrops: activeCrops
       });
 
-      // Tomar las últimas 4 parcelas como recientes
-      setRecentPlots(plotsData.slice(-4).reverse());
-      
+      // Configurar acciones rápidas ACTUALIZADAS
       setQuickActions([
-        { 
-          id: 1, 
-          title: "Gestión de Usuarios", 
-          description: "Administrar usuarios del sistema",
+        {
+          id: 1,
+          title: "Total de Usuarios",
+          description: "Usuarios registrados en el sistema",
           icon: Icons.Users,
           color: "from-blue-500 to-cyan-600",
-          action: () => handleQuickAction('users')
+          action: () => handleUsersManagement(),
+          badge: totalUsers
         },
-        { 
-          id: 2, 
-          title: "Gestión de Parcelas", 
-          description: "Ver y administrar parcelas",
+        {
+          id: 2,
+          title: "Total de Parcelas",
+          description: "Parcelas registradas en el sistema",
           icon: Icons.Farm,
           color: "from-green-500 to-emerald-600",
-          action: () => handleQuickAction('plots')
+          action: () => handlePlotsManagement(),
+          badge: totalPlots
         },
-        { 
-          id: 3, 
-          title: "Analíticas", 
-          description: "Reportes y estadísticas",
-          icon: Icons.Analytics,
+        {
+          id: 3,
+          title: "Total de Cultivos",
+          description: "Cultivos registrados en el sistema",
+          icon: Icons.Crop,
           color: "from-purple-500 to-indigo-600",
-          action: () => handleQuickAction('analytics')
-        },
-        { 
-          id: 4, 
-          title: "Configuración", 
-          description: "Ajustes del sistema",
-          icon: Icons.Settings,
-          color: "from-orange-500 to-red-600",
-          action: () => handleQuickAction('settings')
+          action: () => handleCropsManagement(),
+          badge: totalCrops
         }
       ]);
+
+      console.log('🎯 Dashboard administrativo cargado exitosamente');
     } catch (error) {
-      console.error('Error cargando datos administrativos:', error);
+      console.error('❌ Error cargando datos administrativos:', error);
       notificationService.showErrorNotification('Error al cargar los datos administrativos');
     } finally {
       setLoading(false);
     }
   };
 
-  // Función para generar datos de parcelas de ejemplo
-  const generateSamplePlotsData = (users) => {
-    const cropTypes = ['Maíz', 'Trigo', 'Soja', 'Arroz', 'Café', 'Cacao', 'Banano', 'Papa'];
-    const locations = ['Santa Cruz', 'La Paz', 'Cochabamba', 'Chuquisaca', 'Tarija', 'Pando', 'Beni', 'Oruro'];
-    
-    let plotCounter = 0; // Contador único para parcelas
-    
-    return users.flatMap((user, userIndex) => {
-      const userPlotsCount = Math.floor(Math.random() * 3) + 1; // 1-3 parcelas por usuario
-      return Array.from({ length: userPlotsCount }, (_, plotIndex) => {
-        plotCounter++; // Incrementar contador único
-        return {
-          id: `plot-${plotCounter}`, // ID único para cada parcela
-          name: `Parcela ${plotIndex + 1} - ${user.first_name}`,
-          location: locations[Math.floor(Math.random() * locations.length)],
-          area: (Math.random() * 50 + 5).toFixed(1), // 5-55 hectáreas
-          crop_type: cropTypes[Math.floor(Math.random() * cropTypes.length)],
-          status: Math.random() > 0.3 ? 'active' : 'pending',
-          owner: `${user.first_name} ${user.paternal_surname || ''}`.trim(),
-          created_at: `${Math.floor(Math.random() * 30) + 1} días`
-        };
-      });
-    });
+  useEffect(() => {
+    loadAdminData();
+  }, []);
+
+  // FUNCIONES PARA ACCIONES RÁPIDAS
+  const handleUsersManagement = () => {
+    console.log('👥 Abriendo visualización de usuarios');
+    setActiveModal('users');
+    notificationService.showInfoNotification('Visualización de usuarios abierta');
   };
 
-  // Función para calcular salud del sistema basada en usuarios activos
-  const calculateSystemHealth = (total, active) => {
-    if (total === 0) return 100;
-    const healthPercentage = (active / total) * 100;
-    return Math.round(healthPercentage);
+  const handlePlotsManagement = () => {
+    console.log('🗺️ Abriendo visualización de parcelas');
+    setActiveModal('plots');
+    notificationService.showInfoNotification('Visualización de parcelas abierta');
   };
 
-  const handleQuickAction = (action) => {
-    notificationService.showInfoNotification(`Acción administrativa: ${action} - Funcionalidad en desarrollo`);
+  const handleCropsManagement = () => {
+    console.log('🌱 Abriendo visualización de cultivos');
+    setActiveModal('crops');
+    notificationService.showInfoNotification('Visualización de cultivos abierta');
   };
 
-  // Estadísticas de usuarios REALES para el dashboard administrativo
+  const closeModal = () => {
+    setActiveModal(null);
+  };
+
+  // Estadísticas de usuarios REALES para el dashboard administrativo - ACTUALIZADO
   const userStats = [
     {
       label: 'Usuarios Totales',
@@ -516,15 +622,321 @@ const AdminDashboard = ({ userData, onLogout }) => {
       trend: { value: '+15%', direction: 'up', label: 'este mes' }
     },
     {
-      label: 'Salud del Sistema',
-      value: `${stats.systemHealth}%`,
-      description: 'Basado en usuarios activos',
-      icon: Icons.Shield,
-      color: stats.systemHealth >= 80 ? 'from-green-500 to-emerald-600' : 
-             stats.systemHealth >= 60 ? 'from-yellow-500 to-amber-600' : 'from-orange-500 to-red-600'
+      label: 'Cultivos Totales',
+      value: stats.totalCrops,
+      description: 'Total de cultivos registrados',
+      icon: Icons.Crop,
+      color: 'from-orange-500 to-amber-600',
+      trend: { value: '+20%', direction: 'up', label: 'este mes' }
     }
   ];
 
+  // Componente para mostrar crops en tabla - ACTUALIZADO según la estructura de la BD
+  const CropsTable = ({ crops, loading }) => {
+    if (loading) {
+      return (
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-200 border-t-emerald-600"></div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Cultivos Recientes</h3>
+
+        {crops.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No hay cultivos registrados
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Tipo</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Variedad</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Fecha Siembra</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Fecha Cosecha</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Estado</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Costo Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {crops.slice(0, 5).map((crop) => (
+                  <tr key={crop.crop_id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm text-gray-800">{crop.crop_type}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {crop.crop_variety || 'No especificada'}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {crop.planting_date ? new Date(crop.planting_date).toLocaleDateString('es-ES') : 'No especificada'}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {crop.harvest_date ? new Date(crop.harvest_date).toLocaleDateString('es-ES') : 'No cosechado'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        crop.is_active === true || crop.is_active === 1 ? 'bg-green-100 text-green-800' : 
+                        crop.harvest_date ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {crop.is_active === true || crop.is_active === 1 ? 'Activo' : 
+                         crop.harvest_date ? 'Cosechado' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {crop.cost_total ? `$${parseFloat(crop.cost_total).toFixed(2)}` : '$0.00'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Contenido de las pestañas (solo Resumen)
+  const renderTabContent = () => {
+    return (
+      <div className="space-y-8">
+        {/* Estadísticas Rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {userStats.map((stat, index) => (
+            <UserStatsCard
+              key={index}
+              title={stat.label}
+              value={stat.value}
+              description={stat.description}
+              icon={<stat.icon />}
+              color={stat.color}
+              trend={stat.trend}
+            />
+          ))}
+        </div>
+
+        {/* Grid de Contenido Principal */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Cultivos Recientes */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Cultivos Recientes</h3>
+              <span className="text-gray-500 text-sm">
+                Total: {stats.totalCrops}
+              </span>
+            </div>
+            <CropsTable crops={crops.slice(0, 3)} loading={cropsLoading} />
+          </div>
+
+          {/* Parcelas Recientes */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Parcelas Recientes</h3>
+              <span className="text-gray-500 text-sm">
+                Total: {stats.totalPlots}
+              </span>
+            </div>
+            <div className="space-y-4">
+              {recentPlots.slice(0, 3).map((plot) => (
+                <div key={plot.plot_id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white">
+                    <Icons.Farm className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800 text-sm">{plot.plot_name}</h4>
+                    <p className="text-gray-500 text-xs">{plot.location}</p>
+                  </div>
+                  <div className={`w-2 h-2 rounded-full ${
+                    plot.is_active ? 'bg-green-500' : 'bg-gray-400'
+                  }`}></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // MODAL DE VISUALIZACIÓN DE USUARIOS
+  const UsersManagementModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Total de Usuarios</h2>
+            <p className="text-gray-600">Usuarios registrados en el sistema: {usersData.length}</p>
+          </div>
+          <button
+            onClick={closeModal}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <Icons.UserX className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Usuario</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Email</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Estado</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Fecha Registro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usersData.map((user) => (
+                  <tr key={user.user_id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm text-gray-800">
+                      <div>
+                        <div className="font-medium">{user.first_name} {user.paternal_surname}</div>
+                        <div className="text-gray-500 text-xs">ID: {user.user_id}</div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">{user.email}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.is_active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES') : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+          <div className="text-sm text-gray-600">
+            Total: {usersData.length} usuarios
+          </div>
+          <button
+            onClick={closeModal}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // MODAL DE VISUALIZACIÓN DE PARCELAS
+  const PlotsManagementModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Total de Parcelas</h2>
+            <p className="text-gray-600">Parcelas registradas en el sistema: {plots.length}</p>
+          </div>
+          <button
+            onClick={closeModal}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <Icons.UserX className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {plots.map((plot) => (
+              <div key={plot.plot_id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-bold text-gray-800">{plot.plot_name}</h3>
+                    <p className="text-gray-600 text-sm">{plot.location}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    plot.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {plot.is_active ? 'Activa' : 'Inactiva'}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+                  <div>
+                    <div className="text-gray-500">Área</div>
+                    <div className="font-medium">{plot.area} ha</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Usuario</div>
+                    <div className="font-medium text-xs">
+                      {plot.first_name} {plot.paternal_surname}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  ID: {plot.plot_id} • Creado: {plot.created_at ? new Date(plot.created_at).toLocaleDateString('es-ES') : 'N/A'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+          <div className="text-sm text-gray-600">
+            Total: {plots.length} parcelas
+          </div>
+          <button
+            onClick={closeModal}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // MODAL DE VISUALIZACIÓN DE CULTIVOS
+  const CropsManagementModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Total de Cultivos</h2>
+            <p className="text-gray-600">Cultivos registrados en el sistema: {crops.length}</p>
+          </div>
+          <button
+            onClick={closeModal}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <Icons.UserX className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <CropsTable crops={crops} loading={cropsLoading} />
+        </div>
+        
+        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+          <div className="text-sm text-gray-600">
+            Total: {crops.length} cultivos
+          </div>
+          <button
+            onClick={closeModal}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Mostrar loading mientras se cargan los datos
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
@@ -539,11 +951,11 @@ const AdminDashboard = ({ userData, onLogout }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
       <Navigation userData={userData} onLogout={onLogout} />
-      
-      {/* Header Administrativo */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white pt-24 pb-12">
+
+      {/* Header Administrativo Mejorado */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white pt-24 pb-8">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6">
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
@@ -558,68 +970,103 @@ const AdminDashboard = ({ userData, onLogout }) => {
                 Gestiona y supervisa toda la plataforma AGROSIG desde un solo lugar
               </p>
             </div>
-            <div className="mt-4 lg:mt-0 bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-              <div className="text-center">
-                <div className="text-2xl font-black">{stats.systemHealth}%</div>
-                <div className="text-indigo-200 text-sm">Salud del Sistema</div>
-              </div>
-            </div>
+            {/* SE ELIMINÓ EL WIDGET DE SALUD DEL SISTEMA */}
+          </div>
+
+          {/* Navegación por Pestañas - SOLO RESUMEN */}
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            <button
+              className="flex items-center space-x-2 px-4 py-3 rounded-xl font-semibold transition-all duration-200 bg-white text-indigo-700 shadow-lg border border-indigo-100"
+            >
+              <Icons.Analytics className="w-5 h-5" />
+              <span>Resumen</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Estadísticas Rápidas - Usando componente reutilizable con datos REALES */}
-      <section className="container mx-auto px-4 -mt-8">
-        <UserStatsGrid stats={userStats} />
-      </section>
-
-      {/* Contenido Principal del Admin */}
+      {/* Contenido Principal Mejorado */}
       <section className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
-          {/* Parcelas Recientes - IZQUIERDA */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-gray-800">Parcelas Recientes</h2>
-              <button 
-                onClick={() => handleQuickAction('ver-parcelas')}
-                className="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
-              >
-                Ver todas las parcelas
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {recentPlots.map((plot) => (
-                <PlotCard key={plot.id} plot={plot} />
-              ))}
+          {/* Barra Lateral con Acciones Rápidas ACTUALIZADAS */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 space-y-6">
+              <h2 className="text-xl font-black text-gray-800 mb-4">Acciones Rápidas</h2>
+              <div className="space-y-4">
+                {quickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={action.action}
+                    className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 text-left group hover:scale-105 w-full"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform flex-shrink-0`}>
+                        <action.icon />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-gray-800 text-sm mb-1 truncate">{action.title}</h3>
+                          {action.badge && (
+                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium">
+                              {action.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-600 text-xs leading-relaxed">{action.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* WIDGET DE ESTADÍSTICAS (SOLO LAS ESTADÍSTICAS, SIN SALUD DEL SISTEMA) */}
+              <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white">
+                <h3 className="font-bold text-lg mb-3">Estadísticas del Sistema</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-400/20 rounded-lg flex items-center justify-center">
+                        <Icons.UserCheck className="w-4 h-4" />
+                      </div>
+                      <span className="text-indigo-100 text-sm">Usuarios Activos</span>
+                    </div>
+                    <span className="font-bold text-lg">{stats.activeUsers}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-400/20 rounded-lg flex items-center justify-center">
+                        <Icons.Farm className="w-4 h-4" />
+                      </div>
+                      <span className="text-indigo-100 text-sm">Parcelas Activas</span>
+                    </div>
+                    <span className="font-bold text-lg">{stats.activePlots}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-400/20 rounded-lg flex items-center justify-center">
+                        <Icons.Crop className="w-4 h-4" />
+                      </div>
+                      <span className="text-indigo-100 text-sm">Cultivos Totales</span>
+                    </div>
+                    <span className="font-bold text-lg">{stats.totalCrops}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Acciones Rápidas - DERECHA */}
-          <div>
-            <h2 className="text-2xl font-black text-gray-800 mb-6">Acciones Rápidas</h2>
-            <div className="space-y-6">
-              {quickActions.map((action) => (
-                <button
-                  key={action.id}
-                  onClick={action.action}
-                  className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 text-left group hover:scale-105 w-full"
-                >
-                  <div className="flex items-start space-x-4">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform`}>
-                      <action.icon />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-800 text-lg mb-1">{action.title}</h3>
-                      <p className="text-gray-600 text-sm">{action.description}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* Contenido Principal */}
+          <div className="lg:col-span-3">
+            {renderTabContent()}
           </div>
         </div>
       </section>
+
+      {/* MODALES */}
+      {activeModal === 'users' && <UsersManagementModal />}
+      {activeModal === 'plots' && <PlotsManagementModal />}
+      {activeModal === 'crops' && <CropsManagementModal />}
     </div>
   );
 };
@@ -661,22 +1108,23 @@ export default function DashboardPage() {
             role: currentUser.role || "Usuario",
             userId: currentUser.user_id || currentUser.id,
             profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null,
-            role_id: currentUser.role_id, // Incluir role_id para la detección
+            role_id: currentUser.role_id,
             user_type: currentUser.user_type,
             tipo_usuario: currentUser.tipo_usuario
           };
 
           setUserData(userDataObj);
 
-          // USAR LA MISMA LÓGICA QUE EN NAVIGATION PARA DETECTAR ADMIN
           const userIsAdmin = isAdminUser(userDataObj);
           setIsAdmin(userIsAdmin);
 
           if (userIsAdmin) {
             console.log('👑 Usuario identificado como administrador');
             notificationService.showSuccessNotification('Bienvenido al Panel Administrativo');
+            // NOTA: Los crops y plots se cargan DENTRO del componente AdminDashboard
           } else {
             console.log('👤 Usuario identificado como usuario normal');
+            // Usuario normal NO carga crops ni plots
           }
 
         } catch (userError) {
@@ -724,22 +1172,19 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-const handleDownload = () => {
-  // Ruta al archivo APK en la carpeta public
-  const apkUrl = 'apk/agrosig_aplication.apk';
-  
-  // Crear un enlace temporal para descargar
-  const link = document.createElement('a');
-  link.href = apkUrl;
-  link.download = 'AGROSIG_App.apk'; // Nombre amigable para el usuario
-  link.style.display = 'none';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  notificationService.showSuccessNotification('Descargando AGROSIG App para Android...');
-};
+  const handleDownload = () => {
+    const apkUrl = 'apk/agrosig_aplication.apk';
+    const link = document.createElement('a');
+    link.href = apkUrl;
+    link.download = 'Agrosig.apk';
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    notificationService.showSuccessNotification('Descargando AGROSIG App para Android...');
+  };
 
   const handleRegister = () => {
     router.push('/registro');
@@ -835,7 +1280,10 @@ const handleDownload = () => {
 
   // Si es administrador y está logueado, mostrar dashboard administrativo
   if (isAdmin && userData) {
-    return <AdminDashboard userData={userData} onLogout={handleLogout} />;
+    return <AdminDashboard
+      userData={userData}
+      onLogout={handleLogout}
+    />;
   }
 
   if (!isClient) {
@@ -850,6 +1298,7 @@ const handleDownload = () => {
     return <LoadingSpinner message="Cargando dashboard..." />;
   }
 
+  // DASHBOARD PÚBLICO (para usuarios normales y no autenticados)
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
       {/* Navigation */}
@@ -859,7 +1308,7 @@ const handleDownload = () => {
         onLogin={handleLogin}
       />
 
-      {/* Hero Section Mejorada */}
+      {/* Hero Section - Dashboard Público */}
       <section className="relative bg-gradient-to-br from-green-600 via-emerald-700 to-green-800 text-white pt-16 pb-16 lg:pt-24 lg:pb-28 overflow-hidden px-4 sm:px-6">
         {/* Elementos decorativos animados */}
         <div className="absolute inset-0 bg-black/5"></div>
@@ -926,7 +1375,7 @@ const handleDownload = () => {
               </div>
             </div>
 
-            {/* MOCKUP DEL TELÉFONO ORIGINAL - CONSERVADO TAL CUAL */}
+            {/* MOCKUP DEL TELÉFONO */}
             <div className="flex-1 flex justify-center lg:justify-end mt-8 lg:mt-0">
               <div className="relative">
                 <div className="relative w-56 h-[500px] sm:w-64 sm:h-[560px] lg:w-72 lg:h-[600px] mt-4 sm:mt-0">
@@ -1140,4 +1589,4 @@ const handleDownload = () => {
       </footer>
     </div>
   );
-}
+} 

@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
     setMounted(true);
     
     // Cambiar el título dinámicamente
-    document.title = "4 Soluciones Agrotech SA DECY X";
+    document.title = "Soluciones Agrotech SA DECY X";
   }, []);
 
   if (!mounted) {
