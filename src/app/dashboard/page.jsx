@@ -32,9 +32,12 @@ const Icons = {
     </svg>
   ),
   Users: () => (
+
+
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
     </svg>
+
   ),
   Settings: () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,10 +46,15 @@ const Icons = {
     </svg>
   ),
   Analytics: () => (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    /*<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg> */
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
     </svg>
+
   ),
+
   Database: () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
@@ -133,14 +141,22 @@ const Icons = {
     </svg>
   ),
   Farm: () => (
+
+
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
     </svg>
+
   ),
   Crop: () => (
+    /* <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+     </svg> */
+
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m7.875 14.25 1.214 1.942a2.25 2.25 0 0 0 1.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 0 1 1.872 1.002l.164.246a2.25 2.25 0 0 0 1.872 1.002h2.092a2.25 2.25 0 0 0 1.872-1.002l.164-.246A2.25 2.25 0 0 1 16.954 9h4.636M2.41 9a2.25 2.25 0 0 0-.16.832V12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 0 1 .382-.632l3.285-3.832a2.25 2.25 0 0 1 1.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0 0 21.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
+
   )
 };
 
@@ -503,7 +519,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
         loadPlotsData()
       ]);
 
-      console.log('📊 Datos cargados:', {
+      console.log(' Datos cargados:', {
         users: users.length,
         crops: cropsData.length,
         plots: plotsData.length
@@ -574,19 +590,19 @@ const AdminDashboard = ({ userData, onLogout }) => {
 
   // FUNCIONES PARA ACCIONES RÁPIDAS
   const handleUsersManagement = () => {
-    console.log('👥 Abriendo visualización de usuarios');
+    console.log('Abriendo visualización de usuarios');
     setActiveModal('users');
     notificationService.showInfoNotification('Visualización de usuarios abierta');
   };
 
   const handlePlotsManagement = () => {
-    console.log('🗺️ Abriendo visualización de parcelas');
+    console.log('Abriendo visualización de parcelas');
     setActiveModal('plots');
     notificationService.showInfoNotification('Visualización de parcelas abierta');
   };
 
   const handleCropsManagement = () => {
-    console.log('🌱 Abriendo visualización de cultivos');
+    console.log('Abriendo visualización de cultivos');
     setActiveModal('crops');
     notificationService.showInfoNotification('Visualización de cultivos abierta');
   };
@@ -595,7 +611,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
     setActiveModal(null);
   };
 
-  // Estadísticas de usuarios REALES para el dashboard administrativo - ACTUALIZADO
+  // Estadísticas de usuarios REALES para el dashboard administrativo 
   const userStats = [
     {
       label: 'Usuarios Totales',
@@ -603,7 +619,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
       description: 'Registrados en el sistema',
       icon: Icons.Users,
       color: 'from-blue-500 to-cyan-600',
-      trend: { value: '+12%', direction: 'up', label: 'este mes' }
+
     },
     {
       label: 'Usuarios Activos',
@@ -611,7 +627,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
       description: 'Conectados recientemente',
       icon: Icons.UserCheck,
       color: 'from-green-500 to-emerald-600',
-      trend: { value: '+8%', direction: 'up', label: 'esta semana' }
+
     },
     {
       label: 'Parcelas Totales',
@@ -619,7 +635,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
       description: 'Parcelas registradas',
       icon: Icons.Farm,
       color: 'from-purple-500 to-indigo-600',
-      trend: { value: '+15%', direction: 'up', label: 'este mes' }
+
     },
     {
       label: 'Cultivos Totales',
@@ -627,11 +643,11 @@ const AdminDashboard = ({ userData, onLogout }) => {
       description: 'Total de cultivos registrados',
       icon: Icons.Crop,
       color: 'from-orange-500 to-amber-600',
-      trend: { value: '+20%', direction: 'up', label: 'este mes' }
+
     }
   ];
 
-  // Componente para mostrar crops en tabla - ACTUALIZADO según la estructura de la BD
+  // Componente para mostrar crops en tabla 
   const CropsTable = ({ crops, loading }) => {
     if (loading) {
       return (
@@ -698,7 +714,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
     );
   };
 
-  // Contenido de las pestañas (solo Resumen)
+  // Contenido de las pestañas Resumen
   const renderTabContent = () => {
     return (
       <div className="space-y-8">
@@ -758,6 +774,8 @@ const AdminDashboard = ({ userData, onLogout }) => {
       </div>
     );
   };
+
+  //Modales de acciones rapidos
 
   // MODAL DE VISUALIZACIÓN DE USUARIOS
   const UsersManagementModal = () => (
@@ -954,9 +972,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Icons.Shield />
-                </div>
+                
                 <div>
                   <h1 className="text-3xl font-black">Panel Administrativo</h1>
                   <p className="text-indigo-100">Bienvenido, {userData?.name}</p>
@@ -966,16 +982,16 @@ const AdminDashboard = ({ userData, onLogout }) => {
                 Gestiona y supervisa toda la plataforma AGROSIG desde un solo lugar
               </p>
             </div>
-            {/* SE ELIMINÓ EL WIDGET DE SALUD DEL SISTEMA */}
+
           </div>
 
-          {/* Navegación por Pestañas - SOLO RESUMEN */}
+          {/* Botoon de revista */}
           <div className="flex space-x-2 overflow-x-auto pb-2">
             <button
-              className="flex items-center space-x-2 px-4 py-3 rounded-xl font-semibold transition-all duration-200 bg-white text-indigo-700 shadow-lg border border-indigo-100"
+              className="flex items-center space-x-2 px-4 py-3 rounded-xl font-semibold transition-all duration-200  text-white "
             >
               <Icons.Analytics className="w-5 h-5" />
-              <span>Resumen</span>
+              <span>Resumen del Sistema</span>
             </button>
           </div>
         </div>
@@ -997,17 +1013,13 @@ const AdminDashboard = ({ userData, onLogout }) => {
                     className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 text-left group hover:scale-105 w-full"
                   >
                     <div className="flex items-start space-x-3">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform flex-shrink-0`}>
+                      <div className={`w-10 h-10  rounded-xl flex items-center justify-center text-blue-400  group-hover:scale-110 transition-transform flex-shrink-0`}>
                         <action.icon />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h3 className="font-bold text-gray-800 text-sm mb-1 truncate">{action.title}</h3>
-                          {action.badge && (
-                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium">
-                              {action.badge}
-                            </span>
-                          )}
+
                         </div>
                         <p className="text-gray-600 text-xs leading-relaxed">{action.description}</p>
                       </div>
@@ -1068,7 +1080,7 @@ const AdminDashboard = ({ userData, onLogout }) => {
 };
 
 
-
+// dashboard normal
 
 export default function DashboardPage() {
   const [userData, setUserData] = useState(null);
@@ -1183,7 +1195,7 @@ export default function DashboardPage() {
     setDownloading(true);
 
     try {
-      // Simular un pequeño delay para mejor UX
+      // Simular un pequeño delay 
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const apkUrl = '/apk/agrosig_aplication.apk';
