@@ -57,32 +57,32 @@ export default function HistorialPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 sm:py-6">
             <div className="flex-1 min-w-0">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <FarmIcon className="h-8 w-8 text-green-600" />
+                  <FarmIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                 </div>
-                <div className="ml-4">
-                  <h1 className="text-2xl font-bold text-gray-900 truncate">
+                <div className="ml-3 sm:ml-4">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate">
                     {data.batch_info.name}
                   </h1>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     Historial de Producción - Agrosig
                   </p>
                 </div>
               </div>
             </div>
-            <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-              <div className="bg-green-50 rounded-lg px-4 py-3 border border-green-200">
-                <p className="text-sm font-medium text-green-800">
+            <div className="mt-3 sm:mt-0 flex flex-col sm:items-end">
+              <div className="bg-green-50 rounded-lg px-3 py-2 sm:px-4 sm:py-3 border border-green-200">
+                <p className="text-xs sm:text-sm font-medium text-green-800">
                   Código: <span className="font-mono">{data.batch_info.unique_code}</span>
                 </p>
                 <p className="text-xs text-green-600 mt-1">
                   Consulta: {new Date(data.summary.qr_scanned_at).toLocaleDateString('es-MX', { 
                     year: 'numeric', 
-                    month: 'long', 
+                    month: 'short', 
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
@@ -100,30 +100,30 @@ export default function HistorialPage() {
           ? 'bg-green-50 border-green-200' 
           : 'bg-amber-50 border-amber-200'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2">
             <div className="flex items-center">
               {data.summary.has_activities ? (
-                <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
+                <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2 sm:mr-3" />
               ) : (
-                <WarningIcon className="h-5 w-5 text-amber-500 mr-3" />
+                <WarningIcon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 mr-2 sm:mr-3" />
               )}
               <div>
-                <h3 className={`font-semibold ${
+                <h3 className={`text-sm sm:text-base font-semibold ${
                   data.summary.has_activities ? 'text-green-800' : 'text-amber-800'
                 }`}>
                   {data.summary.has_activities ? 'Historial Completo' : 'Historial Básico'}
                 </h3>
-                <p className={`text-sm ${
+                <p className={`text-xs sm:text-sm ${
                   data.summary.has_activities ? 'text-green-600' : 'text-amber-600'
                 }`}>
                   {data.message}
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Estado del lote</p>
-              <p className={`text-sm font-medium ${
+            <div className="text-left xs:text-right">
+              <p className="text-xs sm:text-sm text-gray-500">Estado del lote</p>
+              <p className={`text-xs sm:text-sm font-medium ${
                 data.summary.has_activities ? 'text-green-700' : 'text-amber-700'
               }`}>
                 {data.summary.has_activities ? 'Activo' : 'Pendiente'}
@@ -134,9 +134,9 @@ export default function HistorialPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
+      <nav className="bg-white border-b border-gray-200 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex space-x-4 sm:space-x-8 min-w-max">
             {[
               { id: 'resumen', name: 'Resumen', icon: ChartBarIcon },
               { id: 'actividades', name: 'Actividades', icon: ClipboardListIcon },
@@ -146,13 +146,13 @@ export default function HistorialPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-green-500 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <tab.icon className="h-5 w-5 mr-2" />
+                <tab.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                 {tab.name}
               </button>
             ))}
@@ -160,7 +160,7 @@ export default function HistorialPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Tab Content */}
         {activeTab === 'resumen' && <SummaryTab data={data} />}
         {activeTab === 'actividades' && <ActivitiesTab data={data} />}
@@ -168,9 +168,9 @@ export default function HistorialPage() {
         {activeTab === 'metricas' && <MetricsTab data={data} />}
       </main>
 
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center text-gray-500 text-sm">
+      <footer className="bg-white border-t border-gray-200 mt-8 sm:mt-12">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+          <div className="text-center text-gray-500 text-xs sm:text-sm">
             <p>Sistema Agrosig • Historial de Producción Verificado</p>
             <p className="mt-1">Consulta generada el {new Date().toLocaleDateString('es-MX')}</p>
           </div>
@@ -183,44 +183,44 @@ export default function HistorialPage() {
 // Componente de pestaña de Resumen
 function SummaryTab({ data }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Métricas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <MetricCard
           title="Total Actividades"
           value={data.summary.total_activities}
           change={null}
-          icon={<ClipboardListIcon className="h-6 w-6" />}
+          icon={<ClipboardListIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />}
           color="blue"
         />
         <MetricCard
           title="Inversión Total"
           value={`$${parseFloat(data.summary.total_batch_cost).toFixed(2)}`}
           change={null}
-          icon={<CurrencyDollarIcon className="h-6 w-6" />}
+          icon={<CurrencyDollarIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />}
           color="green"
         />
         <MetricCard
           title="Duración del Cultivo"
           value={calculateCropDuration(data.crop_info.planting_date, data.crop_info.harvest_date)}
           change={null}
-          icon={<CalendarIcon className="h-6 w-6" />}
+          icon={<CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />}
           color="purple"
         />
         <MetricCard
           title="Estado"
           value={data.summary.has_activities ? 'Completo' : 'Básico'}
           change={null}
-          icon={<CheckBadgeIcon className="h-6 w-6" />}
+          icon={<CheckBadgeIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />}
           color={data.summary.has_activities ? "green" : "amber"}
         />
       </div>
 
       {/* Grid de información principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <InfoCard
           title="Información del Lote"
-          icon={<PackageIcon className="h-5 w-5" />}
+          icon={<PackageIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
           items={[
             { label: 'Nombre', value: data.batch_info.name },
             { label: 'Código único', value: data.batch_info.unique_code },
@@ -231,7 +231,7 @@ function SummaryTab({ data }) {
 
         <InfoCard
           title="Información del Cultivo"
-          icon={<PlantIcon className="h-5 w-5" />}
+          icon={<PlantIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
           items={[
             { label: 'Tipo', value: data.crop_info.type },
             { label: 'Variedad', value: data.crop_info.variety },
@@ -242,7 +242,7 @@ function SummaryTab({ data }) {
 
         <InfoCard
           title="Información del Productor"
-          icon={<UserIcon className="h-5 w-5" />}
+          icon={<UserIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
           items={[
             { label: 'Nombre', value: data.producer_info.name },
             { label: 'Parcela', value: data.producer_info.plot },
@@ -254,18 +254,18 @@ function SummaryTab({ data }) {
       {/* Actividades recientes */}
       {data.activities && data.activities.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Actividades Recientes</h3>
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Actividades Recientes</h3>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <div className="p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {data.activities.slice(0, 3).map((activity, index) => (
                 <ActivityPreview key={activity.activity_id} activity={activity} />
               ))}
             </div>
             {data.activities.length > 3 && (
-              <div className="mt-4 text-center">
-                <button className="text-green-600 hover:text-green-700 font-medium text-sm">
+              <div className="mt-3 sm:mt-4 text-center">
+                <button className="text-green-600 hover:text-green-700 font-medium text-xs sm:text-sm">
                   Ver todas las actividades ({data.activities.length})
                 </button>
               </div>
@@ -284,18 +284,18 @@ function ActivitiesTab({ data }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Actividades Registradas</h2>
-          <p className="text-gray-600 mt-1">Historial completo de actividades realizadas en el lote</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Actividades Registradas</h2>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Historial completo de actividades realizadas en el lote</p>
         </div>
-        <div className="bg-green-50 text-green-800 px-3 py-2 rounded-lg">
+        <div className="bg-green-50 text-green-800 px-3 py-2 rounded-lg text-sm">
           <span className="font-semibold">{data.activities.length}</span> actividades registradas
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {data.activities.map((activity, index) => (
           <ActivityCard key={activity.activity_id} activity={activity} />
         ))}
@@ -307,10 +307,10 @@ function ActivitiesTab({ data }) {
 // Componente de pestaña de Detalles
 function DetailsTab({ data }) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
       {/* Información detallada del lote */}
-      <div className="space-y-6">
-        <SectionCard title="Detalles del Lote de Producción" icon={<PackageIcon className="h-5 w-5" />}>
+      <div className="space-y-4 sm:space-y-6">
+        <SectionCard title="Detalles del Lote de Producción" icon={<PackageIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
           <DetailGrid items={[
             { label: 'Nombre del Lote', value: data.batch_info.name },
             { label: 'Código Único', value: data.batch_info.unique_code },
@@ -320,7 +320,7 @@ function DetailsTab({ data }) {
           ]} />
         </SectionCard>
 
-        <SectionCard title="Información del Productor" icon={<UserIcon className="h-5 w-5" />}>
+        <SectionCard title="Información del Productor" icon={<UserIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
           <DetailGrid items={[
             { label: 'Nombre', value: data.producer_info.name },
             { label: 'Parcela/Unidad', value: data.producer_info.plot },
@@ -329,8 +329,8 @@ function DetailsTab({ data }) {
         </SectionCard>
       </div>
 
-      <div className="space-y-6">
-        <SectionCard title="Detalles del Cultivo" icon={<PlantIcon className="h-5 w-5" />}>
+      <div className="space-y-4 sm:space-y-6">
+        <SectionCard title="Detalles del Cultivo" icon={<PlantIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
           <DetailGrid items={[
             { label: 'Tipo de Cultivo', value: data.crop_info.type },
             { label: 'Variedad', value: data.crop_info.variety },
@@ -340,7 +340,7 @@ function DetailsTab({ data }) {
           ]} />
         </SectionCard>
 
-        <SectionCard title="Resumen del Historial" icon={<CheckBadgeIcon className="h-5 w-5" />}>
+        <SectionCard title="Resumen del Historial" icon={<CheckBadgeIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
           <DetailGrid items={[
             { label: 'Estado', value: data.summary.has_activities ? 'Completo' : 'Básico' },
             { label: 'Total de Actividades', value: data.summary.total_activities },
@@ -360,11 +360,11 @@ function MetricsTab({ data }) {
   const activityCount = data.summary.total_activities
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Métricas financieras */}
-        <SectionCard title="Métricas Financieras" icon={<CurrencyDollarIcon className="h-5 w-5" />}>
-          <div className="space-y-4">
+        <SectionCard title="Métricas Financieras" icon={<CurrencyDollarIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
+          <div className="space-y-3 sm:space-y-4">
             <MetricItem 
               label="Inversión Total" 
               value={`$${totalCost.toFixed(2)}`}
@@ -384,8 +384,8 @@ function MetricsTab({ data }) {
         </SectionCard>
 
         {/* Métricas de tiempo */}
-        <SectionCard title="Métricas de Tiempo" icon={<ClockIcon className="h-5 w-5" />}>
-          <div className="space-y-4">
+        <SectionCard title="Métricas de Tiempo" icon={<ClockIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
+          <div className="space-y-3 sm:space-y-4">
             <MetricItem 
               label="Duración del Cultivo" 
               value={calculateCropDuration(data.crop_info.planting_date, data.crop_info.harvest_date)}
@@ -406,20 +406,20 @@ function MetricsTab({ data }) {
       </div>
 
       {/* Resumen de estado */}
-      <SectionCard title="Estado del Sistema" icon={<ShieldCheckIcon className="h-5 w-5" />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className={`p-4 rounded-lg ${
+      <SectionCard title="Estado del Sistema" icon={<ShieldCheckIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className={`p-3 sm:p-4 rounded-lg ${
             data.summary.has_activities ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
           }`}>
             <div className="flex items-center">
               {data.summary.has_activities ? (
-                <CheckCircleIcon className="h-8 w-8 text-green-500 mr-3" />
+                <CheckCircleIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mr-2 sm:mr-3" />
               ) : (
-                <WarningIcon className="h-8 w-8 text-amber-500 mr-3" />
+                <WarningIcon className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500 mr-2 sm:mr-3" />
               )}
               <div>
-                <h4 className="font-semibold text-gray-900">Nivel de Historial</h4>
-                <p className={`text-sm ${
+                <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Nivel de Historial</h4>
+                <p className={`text-xs sm:text-sm ${
                   data.summary.has_activities ? 'text-green-700' : 'text-amber-700'
                 }`}>
                   {data.summary.has_activities ? 'Completo' : 'Básico'}
@@ -428,12 +428,12 @@ function MetricsTab({ data }) {
             </div>
           </div>
           
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <div className="bg-blue-50 border border-blue-200 p-3 sm:p-4 rounded-lg">
             <div className="flex items-center">
-              <DocumentTextIcon className="h-8 w-8 text-blue-500 mr-3" />
+              <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mr-2 sm:mr-3" />
               <div>
-                <h4 className="font-semibold text-gray-900">Documentación</h4>
-                <p className="text-sm text-blue-700">
+                <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Documentación</h4>
+                <p className="text-xs sm:text-sm text-blue-700">
                   {activityCount > 0 ? 'Completa' : 'Pendiente'}
                 </p>
               </div>
@@ -448,14 +448,14 @@ function MetricsTab({ data }) {
 // Componentes de estado
 function LoadingState({ uniqueCode }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="text-center">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto"></div>
+          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto"></div>
         </div>
-        <h2 className="text-xl font-semibold text-gray-800 mt-6">Cargando historial</h2>
-        <p className="text-gray-600 mt-2">Buscando información del producto en nuestro sistema</p>
-        <p className="text-sm text-gray-500 mt-4 font-mono bg-gray-100 px-3 py-2 rounded-lg inline-block">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mt-4 sm:mt-6">Cargando historial</h2>
+        <p className="text-gray-600 mt-2 text-sm sm:text-base">Buscando información del producto en nuestro sistema</p>
+        <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4 font-mono bg-gray-100 px-2 py-1 sm:px-3 sm:py-2 rounded-lg inline-block">
           {uniqueCode}
         </p>
       </div>
@@ -467,18 +467,18 @@ function ErrorState({ error, uniqueCode }) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
-        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <ExclamationTriangleIcon className="w-10 h-10 text-red-600" />
+        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+          <ExclamationTriangleIcon className="w-8 h-8 sm:w-10 sm:h-10 text-red-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Error al cargar</h1>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
-          <p className="text-sm text-gray-500">Código consultado:</p>
-          <p className="font-mono text-gray-800 font-semibold">{uniqueCode}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Error al cargar</h1>
+        <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">{error}</p>
+        <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+          <p className="text-xs sm:text-sm text-gray-500">Código consultado:</p>
+          <p className="font-mono text-gray-800 font-semibold text-sm sm:text-base">{uniqueCode}</p>
         </div>
         <button 
           onClick={() => window.location.reload()}
-          className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 w-full"
+          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors duration-200 w-full text-sm sm:text-base"
         >
           Reintentar carga
         </button>
@@ -498,16 +498,16 @@ function MetricCard({ title, value, change, icon, color = "gray" }) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6 shadow-sm">
       <div className="flex items-center">
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+        <div className={`p-1 sm:p-2 rounded-lg ${colorClasses[color]}`}>
           {icon}
         </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <div className="ml-2 sm:ml-3 lg:ml-4">
+          <p className="text-xs sm:text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{value}</p>
           {change && (
-            <p className={`text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-xs sm:text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {change >= 0 ? '+' : ''}{change}%
             </p>
           )}
@@ -519,16 +519,16 @@ function MetricCard({ title, value, change, icon, color = "gray" }) {
 
 function InfoCard({ title, icon, items }) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-      <div className="flex items-center mb-4">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm">
+      <div className="flex items-center mb-3 sm:mb-4">
         <div className="text-gray-500">{icon}</div>
-        <h3 className="ml-2 text-lg font-semibold text-gray-900">{title}</h3>
+        <h3 className="ml-2 text-base sm:text-lg font-semibold text-gray-900">{title}</h3>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {items.map((item, index) => (
           <div key={index} className="flex justify-between items-start">
-            <span className="text-sm font-medium text-gray-500">{item.label}</span>
-            <span className="text-sm text-gray-900 font-semibold text-right max-w-xs">{item.value}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-500">{item.label}</span>
+            <span className="text-xs sm:text-sm text-gray-900 font-semibold text-right max-w-xs break-words">{item.value}</span>
           </div>
         ))}
       </div>
@@ -539,13 +539,13 @@ function InfoCard({ title, icon, items }) {
 function SectionCard({ title, icon, children }) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
         <div className="flex items-center">
           {icon}
-          <h3 className="ml-2 text-lg font-semibold text-gray-900">{title}</h3>
+          <h3 className="ml-2 text-base sm:text-lg font-semibold text-gray-900">{title}</h3>
         </div>
       </div>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {children}
       </div>
     </div>
@@ -554,20 +554,20 @@ function SectionCard({ title, icon, children }) {
 
 function ActivityPreview({ activity }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
       <div className="flex items-center">
-        <div className="bg-green-100 p-2 rounded-lg">
-          <ClipboardListIcon className="h-4 w-4 text-green-600" />
+        <div className="bg-green-100 p-1 sm:p-2 rounded-lg">
+          <ClipboardListIcon className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
         </div>
-        <div className="ml-3">
-          <h4 className="text-sm font-medium text-gray-900">{activity.activity_type}</h4>
+        <div className="ml-2 sm:ml-3">
+          <h4 className="text-xs sm:text-sm font-medium text-gray-900">{activity.activity_type}</h4>
           <p className="text-xs text-gray-500">
             {new Date(activity.date).toLocaleDateString('es-MX')}
           </p>
         </div>
       </div>
       <div className="text-right">
-        <p className="text-sm font-semibold text-gray-900">
+        <p className="text-xs sm:text-sm font-semibold text-gray-900">
           ${parseFloat(activity.cost_total).toFixed(2)}
         </p>
       </div>
@@ -578,59 +578,59 @@ function ActivityPreview({ activity }) {
 function ActivityCard({ activity }) {
   const getActivityIcon = (type) => {
     const icons = {
-      'Fertilización': <ChemistryIcon className="w-5 h-5" />,
-      'Riego': <WaterIcon className="w-5 h-5" />,
-      'Poda': <ScissorsIcon className="w-5 h-5" />,
-      'Cosecha': <HarvestIcon className="w-5 h-5" />,
-      'Siembra': <PlantIcon className="w-5 h-5" />,
-      'default': <DocumentIcon className="w-5 h-5" />
+      'Fertilización': <ChemistryIcon className="w-4 h-4 sm:w-5 sm:h-5" />,
+      'Riego': <WaterIcon className="w-4 h-4 sm:w-5 sm:h-5" />,
+      'Poda': <ScissorsIcon className="w-4 h-4 sm:w-5 sm:h-5" />,
+      'Cosecha': <HarvestIcon className="w-4 h-4 sm:w-5 sm:h-5" />,
+      'Siembra': <PlantIcon className="w-4 h-4 sm:w-5 sm:h-5" />,
+      'default': <DocumentIcon className="w-4 h-4 sm:w-5 sm:h-5" />
     }
     return icons[activity.activity_type] || icons.default
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-start justify-between mb-4">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 gap-2">
         <div className="flex items-center">
-          <div className="bg-green-100 p-2 rounded-lg">
+          <div className="bg-green-100 p-1 sm:p-2 rounded-lg">
             {getActivityIcon(activity.activity_type)}
           </div>
-          <div className="ml-4">
-            <h3 className="text-lg font-semibold text-gray-900">{activity.activity_type}</h3>
-            <p className="text-gray-500 text-sm">
+          <div className="ml-2 sm:ml-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">{activity.activity_type}</h3>
+            <p className="text-gray-500 text-xs sm:text-sm">
               {new Date(activity.date).toLocaleDateString('es-MX', { 
-                weekday: 'long', 
+                weekday: 'short', 
                 year: 'numeric', 
-                month: 'long', 
+                month: 'short', 
                 day: 'numeric' 
               })}
             </p>
           </div>
         </div>
-        <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+        <div className="bg-blue-50 text-blue-700 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold self-start sm:self-auto">
           ${parseFloat(activity.cost_total).toFixed(2)}
         </div>
       </div>
 
-      <p className="text-gray-700 mb-4 leading-relaxed">{activity.description}</p>
+      <p className="text-gray-700 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">{activity.description}</p>
 
       {activity.inputs && activity.inputs.length > 0 && (
-        <div className="border-t border-gray-100 pt-4">
-          <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-            <ClipboardIcon className="w-4 h-4 mr-2 text-gray-500" />
+        <div className="border-t border-gray-100 pt-3 sm:pt-4">
+          <h4 className="font-semibold text-gray-800 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
+            <ClipboardIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-500" />
             Insumos Utilizados
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {activity.inputs.map((input, inputIndex) => (
-              <div key={inputIndex} className="bg-gray-50 rounded-lg p-3">
+              <div key={inputIndex} className="bg-gray-50 rounded-lg p-2 sm:p-3">
                 <div className="flex justify-between items-start">
-                  <span className="font-medium text-gray-800">{input.input_name}</span>
-                  <span className="bg-white px-2 py-1 rounded text-sm font-semibold text-gray-700">
+                  <span className="font-medium text-gray-800 text-xs sm:text-sm">{input.input_name}</span>
+                  <span className="bg-white px-1 py-0.5 sm:px-2 sm:py-1 rounded text-xs font-semibold text-gray-700">
                     {input.quantity} {input.unit}
                   </span>
                 </div>
                 {input.unit_cost && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs text-gray-600 mt-1">
                     Costo unitario: ${parseFloat(input.unit_cost).toFixed(2)}
                   </p>
                 )}
@@ -645,16 +645,16 @@ function ActivityCard({ activity }) {
 
 function EmptyActivitiesState() {
   return (
-    <div className="text-center py-12">
-      <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <ClipboardListIcon className="w-10 h-10 text-amber-600" />
+    <div className="text-center py-8 sm:py-12">
+      <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+        <ClipboardListIcon className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-amber-600" />
       </div>
-      <h3 className="text-xl font-semibold text-amber-800 mb-2">Sin actividades registradas</h3>
-      <p className="text-amber-700 max-w-md mx-auto mb-6">
+      <h3 className="text-lg sm:text-xl font-semibold text-amber-800 mb-2">Sin actividades registradas</h3>
+      <p className="text-amber-700 max-w-md mx-auto mb-4 sm:mb-6 text-sm sm:text-base">
         Este lote de producción no tiene actividades asociadas. El historial completo estará disponible cuando se agreguen actividades al sistema.
       </p>
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
-        <p className="text-sm text-amber-700">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4 max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-amber-700">
           <strong>Próximos pasos:</strong> Contacte al administrador del sistema para registrar las actividades realizadas en este lote.
         </p>
       </div>
@@ -664,11 +664,11 @@ function EmptyActivitiesState() {
 
 function DetailGrid({ items }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {items.map((item, index) => (
-        <div key={index} className="flex justify-between items-start border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-          <span className="text-sm font-medium text-gray-500 flex-1">{item.label}</span>
-          <span className="text-sm text-gray-900 font-semibold text-right flex-1">{item.value}</span>
+        <div key={index} className="flex flex-col xs:flex-row xs:justify-between xs:items-start border-b border-gray-100 pb-2 sm:pb-3 last:border-b-0 last:pb-0 gap-1">
+          <span className="text-xs sm:text-sm font-medium text-gray-500 flex-1">{item.label}</span>
+          <span className="text-xs sm:text-sm text-gray-900 font-semibold text-right flex-1 break-words">{item.value}</span>
         </div>
       ))}
     </div>
@@ -677,12 +677,12 @@ function DetailGrid({ items }) {
 
 function MetricItem({ label, value, description }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-gray-100 last:border-b-0 gap-1 sm:gap-0">
       <div>
-        <p className="font-medium text-gray-900">{label}</p>
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="font-medium text-gray-900 text-sm sm:text-base">{label}</p>
+        <p className="text-xs sm:text-sm text-gray-500">{description}</p>
       </div>
-      <span className="text-lg font-bold text-gray-900">{value}</span>
+      <span className="text-base sm:text-lg font-bold text-gray-900 sm:text-right">{value}</span>
     </div>
   )
 }
@@ -696,7 +696,7 @@ function calculateCropDuration(plantingDate, harvestDate) {
   return `${diffDays} días`
 }
 
-// SVG Icons
+// SVG Icons (sin cambios)
 function FarmIcon(props) { 
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
