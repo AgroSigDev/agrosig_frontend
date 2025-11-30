@@ -32,12 +32,9 @@ const Icons = {
     </svg>
   ),
   Users: () => (
-
-
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
     </svg>
-
   ),
   Settings: () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,15 +43,10 @@ const Icons = {
     </svg>
   ),
   Analytics: () => (
-    /*<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg> */
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
     </svg>
-
   ),
-
   Database: () => (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
@@ -141,22 +133,14 @@ const Icons = {
     </svg>
   ),
   Farm: () => (
-
-
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
     </svg>
-
   ),
   Crop: () => (
-    /* <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
-     </svg> */
-
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m7.875 14.25 1.214 1.942a2.25 2.25 0 0 0 1.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 0 1 1.872 1.002l.164.246a2.25 2.25 0 0 0 1.872 1.002h2.092a2.25 2.25 0 0 0 1.872-1.002l.164-.246A2.25 2.25 0 0 1 16.954 9h4.636M2.41 9a2.25 2.25 0 0 0-.16.832V12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 0 1 .382-.632l3.285-3.832a2.25 2.25 0 0 1 1.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0 0 21.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
-
   )
 };
 
@@ -1089,7 +1073,7 @@ export default function DashboardPage() {
   const [error, setError] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const router = useRouter();
 
@@ -1184,7 +1168,7 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  // Función handleDownload actualizada y corregida
+  // Función handleDownload actualizada para redirigir a Google Drive
   const handleDownload = async () => {
     if (!userData) {
       notificationService.showWarningNotification('Debes iniciar sesión para descargar la aplicación AGROSIG');
@@ -1192,32 +1176,14 @@ export default function DashboardPage() {
       return;
     }
 
-    setDownloading(true);
-
-    try {
-      // Simular un pequeño delay 
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const apkUrl = '/apk/agrosig_aplication.apk';
-      const link = document.createElement('a');
-      link.href = apkUrl;
-      link.download = 'Agrosig.apk';
-      link.style.display = 'none';
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      notificationService.showSuccessNotification('¡Descarga iniciada! AGROSIG App se está descargando.');
-
-      // Opcional: Registrar la descarga
-      console.log(`Usuario ${userData.email} descargó la app`);
-    } catch (error) {
-      console.error('Error en la descarga:', error);
-      notificationService.showErrorNotification('Error al iniciar la descarga. Por favor, intenta nuevamente.');
-    } finally {
-      setDownloading(false);
-    }
+    setRedirecting(true);
+    notificationService.showInfoNotification('Redireccionando a Google Drive para descargar AGROSIG App...');
+    
+    // Pequeño delay para mostrar el estado de redirección
+    setTimeout(() => {
+      window.open('https://drive.google.com/drive/folders/1hBaAt-Ld5-dtj0FPGT5heEbeyh4DqE-x?usp=drive_link', '_blank');
+      setRedirecting(false);
+    }, 1500);
   };
 
   const handleRegister = () => {
@@ -1342,6 +1308,29 @@ export default function DashboardPage() {
         onLogin={handleLogin}
       />
 
+      {/* Modal de Redireccionamiento */}
+      {redirecting && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center animate-scale-in">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 animate-pulse">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            
+            <h3 className="text-2xl font-black text-gray-800 mb-3">Redireccionando...</h3>
+            <p className="text-gray-600 mb-6">
+              Estamos llevándote a Google Drive para descargar AGROSIG App
+            </p>
+            
+            <div className="flex items-center justify-center space-x-2 text-green-600">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-green-600 border-t-transparent"></div>
+              <span className="font-semibold">Preparando descarga</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section - Dashboard Público */}
       <section className="relative bg-gradient-to-br from-green-600 via-emerald-700 to-green-800 text-white pt-16 pb-16 lg:pt-24 lg:pb-28 overflow-hidden px-4 sm:px-6">
         {/* Elementos decorativos animados */}
@@ -1386,35 +1375,33 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
                 <button
                   onClick={handleDownload}
-                  disabled={downloading}
-                  className={`bg-white text-gray-800 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 group w-full sm:w-auto sm:max-w-md mx-auto lg:mx-0 ${downloading
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-gray-50 hover:shadow-3xl hover:scale-105'
-                    }`}
+                  disabled={redirecting}
+                  className={`bg-white text-gray-800 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 group w-full sm:w-auto sm:max-w-md mx-auto lg:mx-0 ${
+                    redirecting 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:bg-gray-50 hover:shadow-3xl hover:scale-105'
+                  }`}
                 >
-                  {downloading ? (
-                    <div className="flex items-center space-x-3">
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-800 border-t-transparent"></div>
-                      <div className="text-left">
-                        <div className="text-sm opacity-70">Descargando...</div>
-                        <div className="font-black text-xl">POR FAVOR ESPERA</div>
-                      </div>
+                  <div className="text-left">
+                    <div className="text-sm opacity-70">
+                      {redirecting 
+                        ? 'Redireccionando...' 
+                        : (userData ? 'Descargar ahora' : 'Inicia sesión para descargar')
+                      }
                     </div>
-                  ) : (
-                    <>
-                      <div className="text-left">
-                        <div className="text-sm opacity-70">
-                          {userData ? 'Disponible ahora' : 'Inicia sesión para descargar'}
-                        </div>
-                        <div className="font-black text-xl">
-                          {userData ? 'DESCARGAR APP' : 'INICIAR SESIÓN'}
-                        </div>
-                      </div>
-                      <span className={`transition-transform ${userData ? 'group-hover:animate-bounce' : 'group-hover:translate-x-1'
-                        }`}>
-                        {userData ? '↓' : '→'}
-                      </span>
-                    </>
+                    <div className="font-black text-xl">
+                      {redirecting 
+                        ? 'REDIRIGIENDO...' 
+                        : (userData ? 'DESCARGAR APP' : 'INICIAR SESIÓN')
+                      }
+                    </div>
+                  </div>
+                  {!redirecting && (
+                    <span className={`transition-transform ${
+                      userData ? 'group-hover:animate-bounce' : 'group-hover:translate-x-1'
+                    }`}>
+                      {userData ? '↓' : '→'}
+                    </span>
                   )}
                 </button>
               </div>
@@ -1547,18 +1534,19 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto">
             <button
               onClick={handleDownload}
-              disabled={downloading}
-              className={`bg-white text-green-800 px-8 sm:px-16 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 w-full sm:w-auto ${downloading
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-gray-50 hover:shadow-3xl hover:scale-105'
-                }`}
+              disabled={redirecting}
+              className={`bg-white text-green-800 px-8 sm:px-16 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 sm:space-x-4 w-full sm:w-auto ${
+                redirecting
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-gray-50 hover:shadow-3xl hover:scale-105'
+              }`}
             >
-              {downloading ? (
+              {redirecting ? (
                 <div className="flex items-center space-x-3">
                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-green-800 border-t-transparent"></div>
                   <div className="text-left">
-                    <div className="text-sm opacity-70">Descargando...</div>
-                    <div className="font-black">POR FAVOR ESPERA</div>
+                    <div className="text-sm opacity-70">Redireccionando...</div>
+                    <div className="font-black">A GOOGLE DRIVE</div>
                   </div>
                 </div>
               ) : (
@@ -1667,6 +1655,23 @@ export default function DashboardPage() {
           </div>
         </div>
       </footer>
+
+      {/* Estilos de animación */}
+      <style jsx>{`
+        @keyframes scale-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
-} 
+}
