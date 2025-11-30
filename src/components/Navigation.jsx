@@ -411,13 +411,7 @@ const Navigation = ({ userData, onLogout, onLogin, isLoading = false }) => {
                 className="flex items-center space-x-3 cursor-pointer group"
                 onClick={() => router.push("/dashboard")}
               >
-                <div className="relative">
-                  <img
-                    src="/logo-soluciones-agrotec.png"
-                    alt="Soluciones Agrotec"
-                    className="h-8 w-auto transition-all duration-200 group-hover:scale-105"
-                  />
-                </div>
+            
                 <div className="hidden sm:flex flex-col">
                   <span className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
                     Soluciones Agrotec

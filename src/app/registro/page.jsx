@@ -544,7 +544,7 @@ export default function RegistroPage() {
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => router.push('/login')}
+                onClick={() => router.push('../login')}
                 className="text-sm font-medium text-emerald-600 hover:text-emerald-800 transition-colors duration-200 hover:underline"
                 disabled={loading}
               >

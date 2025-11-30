@@ -1339,7 +1339,8 @@ export default function DashboardPage() {
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 max-w-7xl mx-auto">
-            {/* Contenido principal */}
+
+            {/* Columna Izquierda - Texto y Botones */}
             <div className="flex-1 text-center lg:text-left">
               <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/20">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-ping"></span>
@@ -1404,15 +1405,26 @@ export default function DashboardPage() {
                     </>
                   )}
                 </button>
-
-
               </div>
             </div>
 
-            {/* MOCKUP DEL TELÉFONO */}
-            <div className="flex-1 flex justify-center lg:justify-end mt-8 lg:mt-0">
+            {/* LOGO - CON ANIMACIÓN DE RESPIRACIÓN SOLAMENTE */}
+            <div className="flex justify-center items-center animate-breathe">
+              <div className="w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 relative">
+                <Image
+                  src="/logo-soluciones-agrotec.png"
+                  alt="Logo Soluciones Agrotec"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+
+            {/* Columna Derecha - SOLO el Teléfono */}
+            <div className="flex-1 flex justify-center lg:justify-end">
               <div className="relative">
-                <div className="relative w-56 h-[500px] sm:w-64 sm:h-[560px] lg:w-72 lg:h-[600px] mt-4 sm:mt-0">
+                <div className="relative w-56 h-[500px] sm:w-64 sm:h-[560px] lg:w-72 lg:h-[600px]">
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800 rounded-[2.5rem] shadow-2xl"></div>
 
                   {/* Teléfono */}
