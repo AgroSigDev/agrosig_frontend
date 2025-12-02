@@ -1,4 +1,4 @@
-// src/app/comentarios/page.jsx - VERSIÓN MODIFICADA
+// src/app/comentarios/page.jsx - VERSIÓN COMPLETAMENTE RESPONSIVA
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import notificationService from "../../utils/notifications";
 import Navigation from "../../components/Navigation";
 
-// Utilidades separadas para mejor organización
+// Utilidades
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -41,44 +41,95 @@ const getInitialFromName = (name) => {
 
 const getColorFromId = (id) => {
   const colors = [
-    'bg-slate-600', 'bg-stone-600', 'bg-neutral-600', 
-    'bg-zinc-600', 'bg-gray-600', 'bg-slate-700',
-    'bg-stone-700', 'bg-neutral-700', 'bg-zinc-700'
+    'bg-green-600', 'bg-emerald-600', 'bg-teal-600', 
+    'bg-cyan-600', 'bg-sky-600', 'bg-blue-600',
+    'bg-indigo-600', 'bg-violet-600', 'bg-purple-600'
   ];
   return colors[id % colors.length];
 };
 
-// Componente de Avatar reutilizable
-const UserAvatar = ({ user, size = "w-12 h-12", showOnline = false }) => {
+// Componente de Avatar responsivo
+const UserAvatar = ({ user, size = "w-10 h-10 md:w-12 md:h-12", showOnline = false, className = "" }) => {
   const [imageError, setImageError] = useState(false);
 
   if (user.profileImage && !imageError) {
     return (
-      <div className="relative">
+      <div className={`relative ${className}`}>
         <img
           src={user.profileImage}
           alt={`Avatar de ${user.nombre}`}
-          className={`${size} rounded-xl object-cover shadow-md border border-gray-200`}
+          className={`${size} rounded-full object-cover shadow-md border-2 border-white`}
           onError={() => setImageError(true)}
         />
         {showOnline && user.online && (
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+          <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></div>
         )}
       </div>
     );
   }
 
   return (
-    <div className={`relative ${size} ${getColorFromId(user.id)} rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md border border-gray-200`}>
+    <div className={`relative ${className} ${size} ${getColorFromId(user.id)} rounded-full flex items-center justify-center text-white font-bold text-base md:text-lg shadow-md border-2 border-white`}>
       {getInitialFromName(user.nombre)}
       {showOnline && user.online && (
-        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+        <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-white rounded-full"></div>
       )}
     </div>
   );
 };
 
-// Componente de Comentario individual
+// Badge de rol responsivo
+const RoleBadge = ({ role }) => (
+  <span className="inline-flex items-center px-2 py-0.5 md:px-2.5 md:py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+    {role}
+  </span>
+);
+
+// SVG Icons - tamaños responsivos
+const Icons = {
+  Edit: ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+  ),
+  Delete: ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  ),
+  Send: ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+  ),
+  Add: ({ className = "w-5 h-5 md:w-6 md:h-6" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+    </svg>
+  ),
+  Newest: ({ className = "w-4 h-4 md:w-5 md:h-5" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+  ),
+  ScrollToBottom: ({ className = "w-4 h-4" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+    </svg>
+  ),
+  Comments: ({ className = "w-5 h-5 md:w-6 md:h-6" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+  ),
+  Info: ({ className = "w-3 h-3" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )
+};
+
+// Componente de Comentario responsivo
 const CommentItem = ({ 
   comentario, 
   userAuthenticated, 
@@ -90,223 +141,264 @@ const CommentItem = ({
   editText,
   onEditTextChange 
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group">
-      {/* Header del Comentario */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3">
+    <div 
+      className={`bg-white rounded-lg md:rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-sm transition-all duration-200 group ${
+        isEditing ? 'ring-1 ring-green-500' : ''
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex items-start gap-3 md:gap-4">
+        {/* Avatar */}
+        <div className="flex-shrink-0">
           <UserAvatar user={comentario.usuario} showOnline={true} />
-          
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center space-x-2 mb-1 flex-wrap">
-              <h3 className="text-base font-semibold text-gray-900 truncate">
+        </div>
+
+        {/* Contenido principal */}
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 md:gap-2 mb-2 md:mb-3">
+            <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold text-gray-900 truncate">
                 {comentario.usuario.nombre}
               </h3>
-              <span className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded font-medium border border-green-200 whitespace-nowrap">
-                {comentario.usuario.rol}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 text-xs text-gray-500 flex-wrap">
-              <span className="whitespace-nowrap">{comentario.relativo}</span>
+              <div className="hidden xs:inline">
+                <RoleBadge role={comentario.usuario.rol} />
+              </div>
               {comentario.is_edited && (
-                <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded border border-gray-200 whitespace-nowrap">
+                <span className="text-xs text-gray-500 bg-gray-100 px-1.5 md:px-2 py-0.5 rounded hidden sm:inline">
                   Editado
                 </span>
               )}
             </div>
+            <div className="flex items-center gap-1 md:gap-2">
+              <span className="text-xs text-gray-500">
+                {comentario.relativo}
+              </span>
+              {comentario.is_edited && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-1.5 md:px-2 py-0.5 rounded sm:hidden">
+                  Ed.
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="text-right flex-shrink-0">
-          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
-            {comentario.fecha}
-          </span>
+          {/* Role badge para móviles (debajo del nombre) */}
+          <div className="xs:hidden mb-1">
+            <RoleBadge role={comentario.usuario.rol} />
+          </div>
+
+          {/* Contenido del comentario */}
+          {isEditing ? (
+            <div className="mb-3 md:mb-4 space-y-2 md:space-y-3">
+              <textarea
+                value={editText}
+                onChange={(e) => onEditTextChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none text-gray-700 text-sm leading-relaxed"
+                rows="3"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    onSaveEdit(comentario.id);
+                  }
+                }}
+              />
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  onClick={onCancelEdit}
+                  className="px-3 py-1.5 text-gray-600 hover:text-gray-800 text-sm rounded-md hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => onSaveEdit(comentario.id)}
+                  disabled={!editText.trim()}
+                  className={`px-3 py-1.5 rounded-md text-sm ${
+                    editText.trim()
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Guardar
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 text-right">
+                Ctrl + Enter para guardar rápido
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-700 leading-relaxed text-sm mb-2 md:mb-3 pl-2 md:pl-3 border-l-2 border-gray-200">
+              {comentario.texto}
+            </p>
+          )}
+
+          {/* Acciones */}
+          {userAuthenticated && comentario.canEdit && !isEditing && (
+            <div className={`flex items-center justify-end pt-2 md:pt-3 border-t border-gray-100 transition-opacity duration-200 ${
+              isHovered ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
+            }`}>
+              <div className="flex items-center gap-2 md:gap-3">
+                <button
+                  onClick={() => onEdit(comentario.id, comentario.texto)}
+                  className="flex items-center gap-1 text-green-600 hover:text-green-800 text-sm"
+                >
+                  <div className="w-6 h-6 md:w-7 md:h-7 bg-gray-50 rounded-md flex items-center justify-center hover:bg-green-50">
+                    <Icons.Edit />
+                  </div>
+                  <span className="hidden sm:inline">Editar</span>
+                </button>
+
+                <button
+                  onClick={() => onDelete(comentario.id)}
+                  className="flex items-center gap-1 text-gray-500 hover:text-red-600 text-sm"
+                >
+                  <div className="w-6 h-6 md:w-7 md:h-7 bg-gray-50 rounded-md flex items-center justify-center hover:bg-red-50">
+                    <Icons.Delete />
+                  </div>
+                  <span className="hidden sm:inline">Eliminar</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Contenido del Comentario */}
-      {isEditing ? (
-        <div className="mb-4">
-          <textarea
-            value={editText}
-            onChange={(e) => onEditTextChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 resize-none text-gray-700 text-sm leading-relaxed bg-white transition-all duration-200"
-            rows="3"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                onSaveEdit(comentario.id);
-              }
-            }}
-          />
-          <div className="flex items-center justify-end space-x-2 mt-3">
-            <button
-              onClick={onCancelEdit}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={() => onSaveEdit(comentario.id)}
-              disabled={!editText.trim()}
-              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                editText.trim()
-                  ? 'bg-slate-700 text-white hover:bg-slate-800 shadow-sm'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Guardar
-            </button>
-          </div>
-          <p className="text-xs text-gray-400 mt-2 text-right">
-            Ctrl + Enter para guardar rápido
-          </p>
-        </div>
-      ) : (
-        <p className="text-gray-700 leading-relaxed text-sm mb-3 bg-gray-50 rounded-lg p-4 border border-gray-100 whitespace-pre-wrap">
-          {comentario.texto}
-        </p>
-      )}
-
-      {/* Acciones del Comentario */}
-      {userAuthenticated && comentario.canEdit && !isEditing && (
-        <div className="flex items-center justify-end pt-3 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => onEdit(comentario.id, comentario.texto)}
-              className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 transition-all duration-200"
-            >
-              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-              </div>
-              <span className="font-medium text-sm">Editar</span>
-            </button>
-
-            <button
-              onClick={() => onDelete(comentario.id)}
-              className="flex items-center space-x-2 text-gray-500 hover:text-red-600 transition-all duration-200"
-            >
-              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                </svg>
-              </div>
-              <span className="font-medium text-sm">Eliminar</span>
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-// Componente de Loading mejorado
+// Loading spinner responsivo
 const LoadingSpinner = () => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+  <div className="min-h-screen bg-gray-50">
     <Navigation />
-    <div className="flex justify-center items-center h-96">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-transparent mx-auto mb-4"></div>
-        <div className="text-2xl font-semibold text-slate-700 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg">
-          Cargando comentarios...
+    <div className="flex justify-center items-center h-96 px-4">
+      <div className="text-center space-y-4">
+        <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
+        <div>
+          <h3 className="text-base md:text-lg font-medium text-gray-700">Cargando comentarios</h3>
+          <p className="text-sm text-gray-500 mt-1">Por favor espera...</p>
         </div>
       </div>
     </div>
   </div>
 );
 
-// Componente para usuarios no logueados
+// Login required state responsivo (MANTENIDO IGUAL)
 const LoginRequiredState = ({ onLoginRedirect }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+  <div className="min-h-screen bg-gray-50">
     <Navigation />
     
-    <div className="mt-16 bg-white p-2 shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm min-h-[85vh] flex flex-col">
-      
-      {/* Header con gradiente profesional */}
-      <div className="bg-gradient-to-r from-green-700 to-green-800 px-8 py-6 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">Comentarios de la Comunidad</h2>
-              <p className="text-green-100 text-sm">
-                Conecta con profesionales del sector - Inicia sesión para ver y participar en los comentarios
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={onLoginRedirect}
-              className="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-sm hover:shadow-md"
-            >
-              Iniciar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Área de contenido para usuarios no logueados */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50/50">
-        <div className="text-center max-w-2xl">
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
-            <div className="text-8xl mb-6 opacity-20 text-gray-400">💬</div>
-            
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-              Participa en la conversación
-            </h3>
-            
-            <p className="text-gray-600 text-lg mb-6 leading-relaxed">
-              Para ver los comentarios de la comunidad y compartir tus experiencias, 
-              necesitas iniciar sesión en tu cuenta.
-            </p>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-              <div className="flex items-center justify-center space-x-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8 text-blue-600">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+    <div className="container mx-auto px-4 pt-20 pb-12">
+      <div className="max-w-6xl mx-auto">
+        {/* Hero Section */}
+        <div className="bg-white rounded-lg md:rounded-xl p-6 md:p-8 mb-8 border border-gray-200 shadow-sm">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full mb-4 w-fit">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <div className="text-left">
-                  <p className="text-blue-800 font-semibold text-lg">
-                    Únete a la comunidad AGROSIG
-                  </p>
-                  <p className="text-blue-600">
-                    Comparte tus conocimientos y aprende de otros profesionales del sector agrícola
-                  </p>
+                <span className="text-sm font-medium text-green-700">Acceso requerido</span>
+              </div>
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+                Conecta con la Comunidad AGROSIG
+              </h1>
+              <p className="text-gray-600 mb-6 max-w-2xl">
+                Únete a la conversación con profesionales del sector agrícola. Comparte experiencias, resuelve dudas y construye conocimiento colectivo.
+              </p>
+              <div className="flex flex-wrap gap-2 md:gap-3">
+                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs md:text-sm text-gray-700">Personas activos</span>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs md:text-sm text-gray-700">Discusiones técnicas</span>
                 </div>
               </div>
             </div>
+            <div className="flex-shrink-0">
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                    <Icons.Comments className="w-8 h-8 text-green-600" />
+                  </div>
+                </div>
+                <button
+                  onClick={onLoginRedirect}
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm md:text-base"
+                >
+                  Iniciar Sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-5 rounded-xl border border-gray-200">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm md:text-base">Comunidad Activa</h3>
+            <p className="text-gray-600 text-xs md:text-sm">Interactúa con agricultores, técnicos y expertos del sector.</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-xl border border-gray-200">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm md:text-base">Conocimiento Práctico</h3>
+            <p className="text-gray-600 text-xs md:text-sm">Soluciones reales basadas en experiencias de campo.</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-xl border border-gray-200">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-2 text-sm md:text-base">Respuestas Rápidas</h3>
+            <p className="text-gray-600 text-xs md:text-sm">Obtén ayuda de la comunidad en tiempo real.</p>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <div className="text-center">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4">¿Listo para unirte?</h2>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto text-sm md:text-base">
+              Forma parte de la mayor comunidad digital de profesionales agrícolas. 
+              Comparte, aprende y crece junto a nosotros.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={onLoginRedirect}
-                className="bg-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-sm hover:shadow-md text-lg flex items-center justify-center space-x-3"
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors text-sm md:text-base flex items-center justify-center gap-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
                 <span>Iniciar Sesión</span>
               </button>
               
               <button
                 onClick={() => window.location.href = '/registro'}
-                className="border-2 border-green-600 text-green-600 px-8 py-4 rounded-xl font-semibold hover:bg-green-50 transition-colors text-lg flex items-center justify-center space-x-3"
+                className="border border-green-600 text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors text-sm md:text-base flex items-center justify-center gap-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
                 <span>Crear Cuenta</span>
               </button>
             </div>
-
-            <p className="text-gray-500 text-sm mt-6">
-              Al unirte, podrás comentar, responder y conectar con otros profesionales
-            </p>
           </div>
         </div>
       </div>
@@ -314,21 +406,47 @@ const LoginRequiredState = ({ onLoginRedirect }) => (
   </div>
 );
 
-// Componente de Empty State (solo para usuarios logueados)
-const EmptyState = ({ onLoginRedirect }) => (
-  <div className="text-center py-16 h-full flex items-center justify-center">
-    <div className="max-w-md">
-      <div className="text-6xl mb-4 opacity-20 text-gray-400">💬</div>
-      <h3 className="text-xl font-semibold text-gray-500 mb-2">
-        Aún no hay comentarios
-      </h3>
-      <p className="text-gray-400 text-sm mb-6">
-        Sé el primero en iniciar una conversación y compartir tus conocimientos con la comunidad
-      </p>
+// Empty State responsivo
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-8 md:py-12 px-4 text-center">
+    <div className="mb-4 md:mb-6">
+      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center">
+        <Icons.Comments className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+      </div>
+    </div>
+    <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3">
+      ¡Sé el primero en comentar!
+    </h3>
+    <p className="text-gray-600 mb-4 md:mb-6 max-w-md text-sm md:text-base">
+      Inicia la conversación y comparte tu experiencia con la comunidad agrícola. 
+      Tu conocimiento puede ayudar a muchos profesionales.
+    </p>
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 max-w-md">
+      <div className="flex items-start gap-3">
+        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Icons.Info />
+        </div>
+        <p className="text-sm text-gray-700">
+          <span className="font-semibold">Consejo:</span> Comparte casos reales, preguntas específicas o mejores prácticas.
+        </p>
+      </div>
     </div>
   </div>
 );
 
+// Floating Action Button para móviles
+const FloatingActionButton = ({ onClick, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-green-700 transition-colors z-50"
+    aria-label="Nuevo comentario"
+  >
+    <Icons.Add />
+  </button>
+);
+
+// Componente principal MODIFICADO - COMPLETAMENTE RESPONSIVO
 export default function ComentariosPage() {
   const [userData, setUserData] = useState(null);
   const [isClient, setIsClient] = useState(false);
@@ -339,7 +457,11 @@ export default function ComentariosPage() {
   const [textoEditado, setTextoEditado] = useState("");
   const [sending, setSending] = useState(false);
   const [userAuthenticated, setUserAuthenticated] = useState(false);
+  const [showCommentForm, setShowCommentForm] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
   const messagesEndRef = useRef(null);
+  const commentFormRef = useRef(null);
+  const commentsContainerRef = useRef(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -349,13 +471,10 @@ export default function ComentariosPage() {
 
   const initializePage = async () => {
     try {
-      console.log('Inicializando página...');
-      
       const authenticated = isAuthenticated();
       setUserAuthenticated(authenticated);
       notificationService.init();
 
-      // Solo cargar datos si el usuario está autenticado
       if (authenticated) {
         await loadUserData();
         await cargarComentarios();
@@ -375,7 +494,7 @@ export default function ComentariosPage() {
       setUserData({
         name: currentUser.first_name || "Usuario AGROSIG",
         email: currentUser.email || "usuario@agrosig.com",
-        role: "Usuario Premium",
+        role: "Miembro AGROSIG",
         userId: currentUser.user_id || currentUser.id,
         profileImage: currentUser.image_user || currentUser.profile_image || currentUser.avatar_url || null
       });
@@ -395,7 +514,14 @@ export default function ComentariosPage() {
         throw new Error('Formato de datos inválido');
       }
 
-      const comentariosFormateados = commentsData.map(comment => ({
+      // Ordenar comentarios por fecha: más antiguos primero, más recientes al final
+      const commentsOrdenados = [...commentsData].sort((a, b) => {
+        const dateA = new Date(a.created_at || 0);
+        const dateB = new Date(b.created_at || 0);
+        return dateA - dateB; // Ascendente: más antiguo primero
+      });
+
+      const comentariosFormateados = commentsOrdenados.map(comment => ({
         id: comment.comment_id,
         usuario: {
           id: comment.user_id,
@@ -409,7 +535,8 @@ export default function ComentariosPage() {
         is_edited: comment.is_edited,
         is_deleted: comment.is_deleted,
         respuestas: [],
-        canEdit: userAuthenticated && userData && comment.user_id === userData.userId
+        canEdit: userAuthenticated && userData && comment.user_id === userData.userId,
+        created_at: comment.created_at
       }));
 
       setComentarios(comentariosFormateados);
@@ -422,24 +549,54 @@ export default function ComentariosPage() {
   };
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (autoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end"
+      });
+    }
+  }, [autoScroll]);
+
+  // Auto-scroll al fondo cuando hay nuevos comentarios
+  useEffect(() => {
+    if (autoScroll) {
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [comentarios, autoScroll, scrollToBottom]);
+
+  // Detectar cuando el usuario hace scroll manual
+  const handleScroll = useCallback(() => {
+    if (commentsContainerRef.current) {
+      const container = commentsContainerRef.current;
+      const threshold = 100; // pixeles desde el fondo
+      const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+      
+      setAutoScroll(nearBottom);
+    }
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [comentarios, scrollToBottom]);
+    const container = commentsContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
 
   const handleLoginRedirect = () => {
-    notificationService.showInfoNotification('Por favor, inicia sesión para ver y participar en los comentarios');
+    notificationService.showInfoNotification('Por favor, inicia sesión para participar');
     router.push('/login');
   };
 
   const handleLogout = () => {
-    notificationService.showSuccessNotification('Has cerrado sesión correctamente. ¡Hasta pronto!');
+    notificationService.showSuccessNotification('Sesión cerrada correctamente');
     removeAuthTokens();
     setUserAuthenticated(false);
     setUserData(null);
-    setComentarios([]); // Limpiar comentarios al cerrar sesión
+    setComentarios([]);
   };
 
   const agregarComentario = async () => {
@@ -448,20 +605,23 @@ export default function ComentariosPage() {
       return;
     }
 
-    if (nuevoComentario.trim() === "") {
-      notificationService.showErrorNotification('El comentario no puede estar vacío');
+    const commentText = nuevoComentario.trim();
+    if (commentText === "") {
+      notificationService.showErrorNotification('Escribe algo para comentar');
       return;
     }
 
     try {
       setSending(true);
-      await createCommentAPI(nuevoComentario);
+      await createCommentAPI(commentText);
       setNuevoComentario("");
-      notificationService.showSuccessNotification('¡Tu comentario ha sido publicado!');
+      setShowCommentForm(false);
+      notificationService.showSuccessNotification('¡Comentario publicado!');
       await cargarComentarios();
+      setAutoScroll(true);
     } catch (error) {
       console.error('Error creando comentario:', error);
-      notificationService.showErrorNotification('Error al publicar el comentario: ' + error.message);
+      notificationService.showErrorNotification('Error al publicar: ' + error.message);
     } finally {
       setSending(false);
     }
@@ -496,7 +656,7 @@ export default function ComentariosPage() {
       await cargarComentarios();
     } catch (error) {
       console.error('Error editando comentario:', error);
-      notificationService.showErrorNotification('Error al actualizar el comentario: ' + error.message);
+      notificationService.showErrorNotification('Error al actualizar: ' + error.message);
     }
   };
 
@@ -515,7 +675,7 @@ export default function ComentariosPage() {
       }
     } catch (error) {
       console.error('Error eliminando comentario:', error);
-      notificationService.showErrorNotification('Error al eliminar el comentario: ' + error.message);
+      notificationService.showErrorNotification('Error al eliminar: ' + error.message);
     }
   };
 
@@ -526,132 +686,299 @@ export default function ComentariosPage() {
     }
   };
 
+  const toggleCommentForm = () => {
+    setShowCommentForm(!showCommentForm);
+    if (!showCommentForm) {
+      setTimeout(() => {
+        commentFormRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  };
+
   if (!isClient || loading) {
     return <LoadingSpinner />;
   }
 
-  // Si el usuario NO está autenticado, mostrar el estado de login requerido
   if (!userAuthenticated) {
     return <LoginRequiredState onLoginRedirect={handleLoginRedirect} />;
   }
 
-  // A partir de aquí, solo se ejecuta si el usuario está autenticado
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <Navigation userData={userData} onLogout={handleLogout} />
 
-      {/* Tarjeta Principal */}
-      <div className="mt-16 bg-white p-2 shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm min-h-[85vh] flex flex-col">
-        
-        {/* Header con gradiente profesional */}
-        <div className="bg-gradient-to-r from-green-700 to-green-800 px-8 py-6 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-white">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Comentarios de la Comunidad</h2>
-                <p className="text-green-100 text-sm">
-                  Comparte y conecta con profesionales del sector
+      {/* Main Content - Altura responsiva */}
+      <div className="pt-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 h-[calc(100vh-4rem)]">
+          {/* Header responsivo */}
+          <div className="mb-3 md:mb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg md:text-xl font-bold text-gray-900 truncate">Comunidad AGROSIG</h1>
+                <p className="text-gray-600 text-xs md:text-sm truncate">
+                  Los comentarios más recientes aparecen abajo
                 </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="text-white text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">
-                {comentarios.length} comentarios
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Área de Contenido Principal */}
-        <div className="flex-1 flex flex-col min-h-0">
-          
-          {/* Lista de Comentarios - Área Scrollable */}
-          <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
-            {comentarios.length === 0 ? (
-              <EmptyState onLoginRedirect={handleLoginRedirect} />
-            ) : (
-              <div className="space-y-4 max-w-4xl mx-auto">
-                {comentarios.map((comentario) => (
-                  <CommentItem
-                    key={comentario.id}
-                    comentario={comentario}
-                    userAuthenticated={userAuthenticated}
-                    onEdit={iniciarEdicion}
-                    onDelete={eliminarComentario}
-                    isEditing={editandoComentario === comentario.id}
-                    onSaveEdit={guardarEdicion}
-                    onCancelEdit={cancelarEdicion}
-                    editText={textoEditado}
-                    onEditTextChange={setTextoEditado}
-                  />
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-          </div>
-
-          {/* Formulario de Nuevo Comentario */}
-          <div className="p-6 border-t border-gray-200 bg-gradient-to-br from-white to-gray-50/50 flex-shrink-0">
-            <div className="flex items-start space-x-4 max-w-4xl mx-auto">
-              <div className="flex-shrink-0">
-                <UserAvatar 
-                  user={{
-                    profileImage: userData?.profileImage,
-                    nombre: userData?.name,
-                    id: userData?.userId
-                  }} 
-                />
-              </div>
-
-              <div className="flex-1">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Añadir un comentario
-                  </label>
-                  <textarea
-                    value={nuevoComentario}
-                    onChange={(e) => setNuevoComentario(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Comparte tus experiencias, preguntas o conocimientos con la comunidad agrícola..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-gray-700 placeholder-gray-500 text-base leading-relaxed transition-all duration-200 hover:border-gray-400 bg-white shadow-sm"
-                    rows="3"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
-                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs border border-gray-200">
-                      Ctrl + Enter para publicar
+              <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4">
+                <div className="bg-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-gray-200 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <span className="text-xs md:text-sm font-medium text-gray-700">
+                      {comentarios.length} {comentarios.length === 1 ? 'comentario' : 'comentarios'}
                     </span>
                   </div>
-
+                </div>
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={agregarComentario}
-                    disabled={!nuevoComentario.trim() || sending}
-                    className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm ${
-                      nuevoComentario.trim() && !sending
-                        ? 'bg-green-700 text-white hover:bg-green-800 hover:shadow-md'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                    onClick={scrollToBottom}
+                    className="hidden md:flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                    title="Ir al comentario más reciente"
                   >
-                    {sending ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Publicando...</span>
+                    <Icons.Newest />
+                    <span>Más reciente</span>
+                  </button>
+                  <button
+                    onClick={toggleCommentForm}
+                    className="md:hidden bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-1">
+                      <Icons.Add className="w-4 h-4" />
+                      <span className="text-xs">Nuevo</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 h-[calc(100%-3.5rem)]">
+            {/* Área principal con scroll - COMENTARIOS + INPUT JUNTOS */}
+            <div className="lg:flex-1 flex flex-col h-full">
+              {/* Indicador de orden responsivo */}
+              <div className="mb-1 md:mb-2 px-1">
+                <div className="flex items-center gap-1.5 md:gap-2 text-xs text-gray-500">
+                  <Icons.Newest className="w-3 h-3" />
+                  <span className="truncate">El mensaje más reciente aparece al final</span>
+                </div>
+              </div>
+
+              {/* Contenedor de comentarios con scroll */}
+              <div 
+                ref={commentsContainerRef}
+                className="flex-1 overflow-y-auto mb-3 md:mb-4 pr-1 md:pr-2"
+              >
+                {/* Comments List */}
+                <div className="space-y-2 md:space-y-3">
+                  {comentarios.length === 0 ? (
+                    <EmptyState />
+                  ) : (
+                    comentarios.map((comentario) => (
+                      <CommentItem
+                        key={comentario.id}
+                        comentario={comentario}
+                        userAuthenticated={userAuthenticated}
+                        onEdit={iniciarEdicion}
+                        onDelete={eliminarComentario}
+                        isEditing={editandoComentario === comentario.id}
+                        onSaveEdit={guardarEdicion}
+                        onCancelEdit={cancelarEdicion}
+                        editText={textoEditado}
+                        onEditTextChange={setTextoEditado}
+                      />
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </div>
+
+              {/* Comment Form (Desktop) */}
+              <div className="hidden md:block flex-shrink-0" ref={commentFormRef}>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <UserAvatar 
+                      user={{
+                        profileImage: userData?.profileImage,
+                        nombre: userData?.name,
+                        id: userData?.userId
+                      }}
+                      className="flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <div className="mb-3">
+                        <textarea
+                          value={nuevoComentario}
+                          onChange={(e) => setNuevoComentario(e.target.value)}
+                          onKeyDown={handleKeyPress}
+                          placeholder="Comparte tus experiencias, preguntas técnicas, consejos agrícolas..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none text-gray-700 placeholder-gray-500 text-sm leading-relaxed"
+                          rows="2"
+                        />
                       </div>
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        <span>Publicar comentario</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="text-xs text-gray-500">
+                          <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            Ctrl + Enter para publicar rápido
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={scrollToBottom}
+                            className="p-2 text-gray-500 hover:text-gray-700"
+                            title="Ir al comentario más reciente"
+                          >
+                            <Icons.ScrollToBottom />
+                          </button>
+                          <button
+                            onClick={agregarComentario}
+                            disabled={!nuevoComentario.trim() || sending}
+                            className={`px-3 py-2 rounded-md font-medium text-sm min-w-[100px] ${
+                              nuevoComentario.trim() && !sending
+                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            {sending ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>Publicando...</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center gap-2">
+                                <Icons.Send />
+                                <span>Publicar</span>
+                              </div>
+                            )}
+                          </button>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comment Form (Mobile - Conditional) */}
+              {(showCommentForm || comentarios.length === 0) && (
+                <div className="md:hidden flex-shrink-0 mt-3" ref={commentFormRef}>
+                  <div className="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
+                    <div className="flex items-start gap-3">
+                      <UserAvatar 
+                        user={{
+                          profileImage: userData?.profileImage,
+                          nombre: userData?.name,
+                          id: userData?.userId
+                        }}
+                        size="w-8 h-8"
+                        className="flex-shrink-0 mt-1"
+                      />
+                      <div className="flex-1">
+                        <textarea
+                          value={nuevoComentario}
+                          onChange={(e) => setNuevoComentario(e.target.value)}
+                          onKeyDown={handleKeyPress}
+                          placeholder="Escribe tu comentario..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 resize-none text-gray-700 text-sm"
+                          rows="2"
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-between mt-2">
+                          <button
+                            onClick={() => setShowCommentForm(false)}
+                            className="text-sm text-gray-500 hover:text-gray-700 px-2"
+                          >
+                            Cancelar
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={scrollToBottom}
+                              className="p-2 text-gray-500 hover:text-gray-700"
+                              title="Ir al comentario más reciente"
+                            >
+                              <Icons.ScrollToBottom className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={agregarComentario}
+                              disabled={!nuevoComentario.trim() || sending}
+                              className={`px-3 py-1.5 rounded-md text-sm font-medium min-w-[80px] ${
+                                nuevoComentario.trim() && !sending
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-gray-200 text-gray-400'
+                              }`}
+                            >
+                              {sending ? 'Enviando...' : 'Publicar'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar (Desktop) - FIJO */}
+            <div className="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0">
+              <div className="sticky top-24 space-y-4">
+                {/* User Card SOLAMENTE */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <UserAvatar 
+                      user={{
+                        profileImage: userData?.profileImage,
+                        nombre: userData?.name,
+                        id: userData?.userId
+                      }}
+                      size="w-12 h-12 md:w-14 md:h-14"
+                    />
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{userData?.name}</h3>
+                      <p className="text-xs text-gray-500 truncate">{userData?.email}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Tus comentarios</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {comentarios.filter(c => c.canEdit).length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Último comentario</span>
+                      <span className="text-xs font-medium text-gray-900 truncate">
+                        {comentarios.length > 0 ? comentarios[comentarios.length - 1]?.relativo : 'Ninguno'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Community Guidelines simplificado */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 className="font-medium text-gray-900 mb-3 text-sm md:text-base">
+                    Normas de la comunidad
+                  </h4>
+                  <ul className="space-y-2 text-xs text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
+                      <span>Sé respetuoso</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
+                      <span>Comparte experiencias reales</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
+                      <span>Evita spam</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Quick Action para ir al más reciente */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <button
+                    onClick={scrollToBottom}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors text-sm"
+                  >
+                    <Icons.Newest className="w-4 h-4" />
+                    <span>Ir al más reciente</span>
                   </button>
                 </div>
               </div>
@@ -659,6 +986,12 @@ export default function ComentariosPage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button para móviles */}
+      <FloatingActionButton 
+        onClick={toggleCommentForm} 
+        disabled={sending}
+      />
     </div>
   );
 }

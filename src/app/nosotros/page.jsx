@@ -214,7 +214,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "David de Jesús Chavarría Hernández",
                     puesto: "Product Owner & FullStack Móvil",
-                    foto: "/equipo/david.png",
+                    foto: "/equipo/hernadez.png",
                     descripcion: "Líder del proyecto con expertise en desarrollo móvil. Responsable de definir la visión del producto y priorizar el backlog.",
                     habilidades: ["Aleteo", "Node.js", "PHP ", "PostgreSQL", "Mongo", "MySQL ", "postman", "VS Code", "HTML 5", "Javascript", "Bootstrap", "Docker", "Git", "Flutter", "Linux", "Android Studio", "Dart", "Insomnia", "PostgreSQL"],
                     email: "david087hdz@gmail.com",
@@ -224,7 +224,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "Yolanda Avendaño Estrada",
                     puesto: "Scrum Master",
-                    foto: "/equipo/image.png",
+                    foto: "/equipo/yolanda.png",
                     descripcion: "Facilitadora del proceso Scrum, asegurando que el equipo siga las prácticas ágiles y elimina impedimentos.",
                     habilidades: ["Scrum", "Agile", "Facilitación", "Gestión de Procesos"],
                     email: "yolanda.avendano@utselva.edu.mx",
@@ -244,7 +244,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "David Ordoñez Estrada",
                     puesto: "QA Tester",
-                    foto: "/equipo/image.png",
+                    foto: "/equipo/ordoñez.png",
                     descripcion: "Especialista en aseguramiento de calidad. Garantiza que el producto cumpla con los más altos estándares de calidad.",
                     habilidades: ["Testing", "Cypress", "Jest", "Control de Calidad"],
                     email: "david.ordonez@utselva.edu.mx",
@@ -254,7 +254,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "Dulce Yuridia Chavarría Hernández",
                     puesto: "Diseñadora UI/UX",
-                    foto: "/equipo/image.png",
+                    foto: "/equipo/dulce.png",
                     descripcion: "Creativa especializada en diseño de interfaces e experiencia de usuario. Combina estética y funcionalidad.",
                     habilidades: ["Figma", "UI/UX", "Design Thinking", "Prototipado"],
                     email: "dulce.chavarria@utselva.edu.mx",
@@ -264,7 +264,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "Abistrain Hernández Suarez",
                     puesto: "Especialista en Marketing",
-                    foto: "/equipo/image.png",
+                    foto: "/equipo/avistrain.png",
                     descripcion: "Responsable de estrategias de marketing digital y posicionamiento del producto en el mercado agrícola.",
                     habilidades: ["Marketing Digital", "Estrategia", "Análisis de Mercado", "Branding"],
                     email: "abistrain.hernandez@utselva.edu.mx",
@@ -274,7 +274,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "Daniel Uriel Trujillo Delgadillo",
                     puesto: "Especialista en Marketing",
-                    foto: "/equipo/image.png",
+                    foto: "/equipo/uriel.png",
                     descripcion: "Especializado en estrategias de marketing y comunicación. Enfocado en expandir el alcance del proyecto AGROSIG.",
                     habilidades: ["Comunicación", "Estrategias de Mercado", "Publicidad", "Redes Sociales"],
                     email: "daniel.trujillo@utselva.edu.mx",
