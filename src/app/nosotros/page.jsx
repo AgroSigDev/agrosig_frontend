@@ -244,7 +244,7 @@ export default function NosotrosPage() {
                 {
                     nombre: "David Ordoñez Estrada",
                     puesto: "QA Tester",
-                    foto: "/equipo/ordoñez.png",
+                    foto: "/equipo/Ordoñez.png",
                     descripcion: "Especialista en aseguramiento de calidad. Garantiza que el producto cumpla con los más altos estándares de calidad.",
                     habilidades: ["Testing", "Cypress", "Jest", "Control de Calidad"],
                     email: "david.ordonez@utselva.edu.mx",
