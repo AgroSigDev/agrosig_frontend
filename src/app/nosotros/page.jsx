@@ -228,13 +228,13 @@ export default function NosotrosPage() {
                     descripcion: "Facilitadora del proceso Scrum, asegurando que el equipo siga las prácticas ágiles y elimina impedimentos.",
                     habilidades: ["Scrum", "Agile", "Facilitación", "Gestión de Procesos"],
                     email: "yolanda.avendano@utselva.edu.mx",
-                    github: "https://github.com/yolanda-avendano",
-                    linkedin: "https://linkedin.com/in/yolanda-avendano"
+                    github: "",
+                    linkedin: ""
                 },
                 {
                     nombre: "Luis Arturo Villarreal López",
                     puesto: "Desarrollador FullStack Web",
-                    foto: "/equipo/arturo.png",
+                    foto: "/equipo/villarreal.png",
                     descripcion: "Especializado en desarrollo web full stack. Crea aplicaciones modernas y responsivas con las últimas tecnologías.",
                     habilidades: ["PHP", "windsurf", "livewire", "Laravel", "Next.js", "Node.js", "MongoDB", "JavaScript", "mongoDB", "Tailwind CSS", "flowbite", "Docker", "Git", "Linux", "Android Studio", "Kotlin", "PostgreSQL", "HTML 5", "CSS 3", "Bootstrap"],
                     email: "villarreallopoez@gmail.com",
@@ -248,8 +248,8 @@ export default function NosotrosPage() {
                     descripcion: "Especialista en aseguramiento de calidad. Garantiza que el producto cumpla con los más altos estándares de calidad.",
                     habilidades: ["Testing", "Cypress", "Jest", "Control de Calidad"],
                     email: "david.ordonez@utselva.edu.mx",
-                    github: "https://github.com/david-ordonez",
-                    linkedin: "https://linkedin.com/in/david-ordonez"
+                    github: "",
+                    linkedin: ""
                 },
                 {
                     nombre: "Dulce Yuridia Chavarría Hernández",
@@ -258,8 +258,8 @@ export default function NosotrosPage() {
                     descripcion: "Creativa especializada en diseño de interfaces e experiencia de usuario. Combina estética y funcionalidad.",
                     habilidades: ["Figma", "UI/UX", "Design Thinking", "Prototipado"],
                     email: "dulce.chavarria@utselva.edu.mx",
-                    github: "https://github.com/dulce-chavarria",
-                    linkedin: "https://linkedin.com/in/dulce-chavarria"
+                    github: "",
+                    linkedin: ""
                 },
                 {
                     nombre: "Abistrain Hernández Suarez",
@@ -268,8 +268,8 @@ export default function NosotrosPage() {
                     descripcion: "Responsable de estrategias de marketing digital y posicionamiento del producto en el mercado agrícola.",
                     habilidades: ["Marketing Digital", "Estrategia", "Análisis de Mercado", "Branding"],
                     email: "abistrain.hernandez@utselva.edu.mx",
-                    github: "https://github.com/abistrain-hernandez",
-                    linkedin: "https://linkedin.com/in/abistrain-hernandez"
+                    github: "",
+                    linkedin: ""
                 },
                 {
                     nombre: "Daniel Uriel Trujillo Delgadillo",
@@ -278,8 +278,8 @@ export default function NosotrosPage() {
                     descripcion: "Especializado en estrategias de marketing y comunicación. Enfocado en expandir el alcance del proyecto AGROSIG.",
                     habilidades: ["Comunicación", "Estrategias de Mercado", "Publicidad", "Redes Sociales"],
                     email: "daniel.trujillo@utselva.edu.mx",
-                    github: "https://github.com/daniel-trujillo",
-                    linkedin: "https://linkedin.com/in/daniel-trujillo"
+                    github: "",
+                    linkedin: ""
                 }
             ]
         }
@@ -563,200 +563,240 @@ export default function NosotrosPage() {
                                 </p>
                             </div>
 
-                            {/* Grid de Miembros del Equipo */}
+                            {/* Grid de Miembros del Equipo - TODOS LOS INTEGRANTES */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                                {sections.equipo.miembros.map((miembro, index) => (
-                                    <div key={index} className="group perspective" style={{ perspective: '1000px' }}>
-                                        <div className="relative w-full h-[500px] transition-all duration-500 preserve-3d group-hover:rotate-y-180">
-                                            {/* FRENTE de la card - SOLO información básica */}
-                                            <div className="absolute inset-0 backface-hidden bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
-                                                {/* Header con foto más grande */}
-                                                <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden flex-shrink-0">
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        {miembro.foto ? (
-                                                            <img
-                                                                src={miembro.foto}
-                                                                alt={miembro.nombre}
-                                                                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-32 h-32 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                                                                <span className="text-white text-2xl font-bold">
-                                                                    {miembro.nombre.split(' ').map(n => n[0]).join('')}
+                                {sections.equipo.miembros.map((miembro, index) => {
+                                    // Verificar si el miembro tiene cuentas
+                                    const tieneGitHub = miembro.github && miembro.github !== "#" && miembro.github !== "";
+                                    const tieneLinkedIn = miembro.linkedin && miembro.linkedin !== "#" && miembro.linkedin !== "";
+
+                                    return (
+                                        <div key={index} className="group perspective" style={{ perspective: '1000px' }}>
+                                            <div className="relative w-full h-[500px] transition-all duration-500 preserve-3d group-hover:rotate-y-180">
+                                                {/* FRENTE de la card - SOLO información básica */}
+                                                <div className="absolute inset-0 backface-hidden bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                                                    {/* Header con foto MÁS GRANDE y centrada */}
+                                                    <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden flex-shrink-0">
+                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                            {miembro.foto ? (
+                                                                <img
+                                                                    src={miembro.foto}
+                                                                    alt={miembro.nombre}
+                                                                    className="w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg object-center"
+                                                                    style={{ objectPosition: 'center top' }}
+                                                                />
+                                                            ) : (
+                                                                <div className="w-36 h-36 bg-gradient-to-br from-indigo-400 to-purple-600 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                                                                    <span className="text-white text-3xl font-bold">
+                                                                        {miembro.nombre.split(' ').map(n => n[0]).join('')}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {/* Badge de estudiante */}
+                                                        <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                                            Ingeniero
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Información básica con más espacio */}
+                                                    <div className="p-6 flex-1 flex flex-col justify-between">
+                                                        <div className="text-center">
+                                                            <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
+                                                                {miembro.nombre}
+                                                            </h3>
+                                                            <p className="text-green-600 font-semibold text-base mb-4">
+                                                                {miembro.puesto}
+                                                            </p>
+
+                                                            {/* Universidad */}
+                                                            <div className="mb-6">
+                                                                <span className="inline-block bg-blue-100 text-blue-800 text-sm px-4 py-2 rounded-full font-medium">
+                                                                    UTS, Chiapas
                                                                 </span>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    {/* Badge de estudiante */}
-                                                    <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                                                        Ingeniero
-                                                    </div>
-                                                </div>
 
-                                                {/* Información básica con más espacio */}
-                                                <div className="p-6 flex-1 flex flex-col justify-between">
-                                                    <div className="text-center">
-                                                        <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
-                                                            {miembro.nombre}
-                                                        </h3>
-                                                        <p className="text-green-600 font-semibold text-base mb-4">
-                                                            {miembro.puesto}
-                                                        </p>
-
-                                                        {/* Universidad */}
-                                                        <div className="mb-6">
-                                                            <span className="inline-block bg-blue-100 text-blue-800 text-sm px-4 py-2 rounded-full font-medium">
-                                                                UTS, Chiapas
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Habilidades principales con más espacio */}
-                                                        <div className="mb-4">
-                                                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Habilidades Principales</h4>
-                                                            <div className="flex flex-wrap gap-2 justify-center">
-                                                                {miembro.habilidades.slice(0, 4).map((habilidad, idx) => (
-                                                                    <span
-                                                                        key={idx}
-                                                                        className="inline-block bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full border border-gray-200"
-                                                                    >
-                                                                        {habilidad}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Indicador de hover más visible */}
-                                                    <div className="flex items-center justify-center text-gray-500 text-sm mt-4 p-3 bg-gray-50 rounded-lg">
-                                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                        Click para más información
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* REVERSO de la card - MÁS ESPACIO PARA TODO EL CONTENIDO */}
-                                            <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg rotate-y-180 p-6 text-white flex flex-col">
-                                                {/* Header más compacto */}
-                                                <div className="text-center mb-4 flex-shrink-0 border-b border-white/20 pb-4">
-                                                    <h3 className="text-xl font-bold mb-1">{miembro.nombre}</h3>
-                                                    <p className="text-indigo-200 text-base">{miembro.puesto}</p>
-                                                </div>
-
-                                                {/* Contenido principal con scroll suave */}
-                                                <div className="flex-1 overflow-y-auto pr-2">
-                                                    <div className="space-y-5">
-                                                        {/* Descripción completa */}
-                                                        <div>
-                                                            <h4 className="text-base font-semibold text-white mb-3 flex items-center">
-                                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                </svg>
-                                                                Sobre Mí
-                                                            </h4>
-                                                            <p className="text-indigo-100 text-sm leading-relaxed bg-white/10 rounded-lg p-4">
-                                                                {miembro.descripcion}
-                                                            </p>
-                                                        </div>
-
-                                                        {/* Información académica MEJORADA */}
-                                                        <div>
-                                                            <h4 className="text-base font-semibold text-white mb-3 flex items-center">
-                                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                                                                </svg>
-                                                                Formación Académica
-                                                            </h4>
-                                                            <div className="bg-white/10 rounded-lg p-4 space-y-3">
-                                                                <div className="flex items-start">
-                                                                    <svg className="w-5 h-5 mr-3 text-indigo-200 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                                    </svg>
-                                                                    <div>
-                                                                        <p className="text-indigo-100 text-sm font-semibold">Universidad Tecnológica de la Selva</p>
-                                                                        <p className="text-indigo-200 text-xs mt-1">Chiapas, México</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-start">
-                                                                    <svg className="w-5 h-5 mr-3 text-indigo-200 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                                                    </svg>
-                                                                    <div>
-                                                                        <p className="text-indigo-100 text-sm font-semibold">Ingeniería en Desarrollo y Gestión de Software</p>
-                                                                        <p className="text-indigo-200 text-xs mt-1">Carrera: IDGS</p>
-                                                                    </div>
+                                                            {/* Habilidades principales con más espacio */}
+                                                            <div className="mb-4">
+                                                                <h4 className="text-sm font-semibold text-gray-700 mb-3">Habilidades Principales</h4>
+                                                                <div className="flex flex-wrap gap-2 justify-center">
+                                                                    {miembro.habilidades.slice(0, 4).map((habilidad, idx) => (
+                                                                        <span
+                                                                            key={idx}
+                                                                            className="inline-block bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full border border-gray-200"
+                                                                        >
+                                                                            {habilidad}
+                                                                        </span>
+                                                                    ))}
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        {/* Competencias Técnicas con más espacio */}
-                                                        <div>
-                                                            <h4 className="text-base font-semibold text-white mb-3 flex items-center">
-                                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                                </svg>
-                                                                Competencias Técnicas
-                                                            </h4>
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {miembro.habilidades.map((habilidad, idx) => (
-                                                                    <span
-                                                                        key={idx}
-                                                                        className="inline-block bg-white/20 text-white text-sm px-3 py-2 rounded-full backdrop-blur-sm border border-white/10"
-                                                                    >
-                                                                        {habilidad}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
+                                                        {/* Indicador de hover más visible */}
+                                                        <div className="flex items-center justify-center text-gray-500 text-sm mt-4 p-3 bg-gray-50 rounded-lg">
+                                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                            Click para más información
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Contacto fijo en la parte inferior */}
-                                                <div className="border-t border-white/20 pt-4 mt-4 flex-shrink-0">
-                                                    <h4 className="text-base font-semibold text-white mb-3 flex items-center">
-                                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                        </svg>
-                                                        Contacto
-                                                    </h4>
-                                                    <div className="flex justify-between items-center">
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-indigo-100 text-sm truncate" title={miembro.email}>
-                                                                {miembro.email}
-                                                            </p>
+                                                {/* REVERSO de la card - MÁS ESPACIO PARA TODO EL CONTENIDO */}
+                                                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg rotate-y-180 p-6 text-white flex flex-col">
+                                                    {/* Header más compacto */}
+                                                    <div className="text-center mb-4 flex-shrink-0 border-b border-white/20 pb-4">
+                                                        <h3 className="text-xl font-bold mb-1">{miembro.nombre}</h3>
+                                                        <p className="text-indigo-200 text-base">{miembro.puesto}</p>
+                                                    </div>
+
+                                                    {/* Contenido principal con scroll suave */}
+                                                    <div className="flex-1 overflow-y-auto pr-2">
+                                                        <div className="space-y-5">
+                                                            {/* Descripción completa */}
+                                                            <div>
+                                                                <h4 className="text-base font-semibold text-white mb-3 flex items-center">
+                                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                    Sobre Mí
+                                                                </h4>
+                                                                <p className="text-indigo-100 text-sm leading-relaxed bg-white/10 rounded-lg p-4">
+                                                                    {miembro.descripcion}
+                                                                </p>
+                                                            </div>
+
+                                                            {/* Información académica MEJORADA */}
+                                                            <div>
+                                                                <h4 className="text-base font-semibold text-white mb-3 flex items-center">
+                                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                                                                    </svg>
+                                                                    Formación Académica
+                                                                </h4>
+                                                                <div className="bg-white/10 rounded-lg p-4 space-y-3">
+                                                                    <div className="flex items-start">
+                                                                        <svg className="w-5 h-5 mr-3 text-indigo-200 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                        </svg>
+                                                                        <div>
+                                                                            <p className="text-indigo-100 text-sm font-semibold">Universidad Tecnológica de la Selva</p>
+                                                                            <p className="text-indigo-200 text-xs mt-1">Chiapas, México</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-start">
+                                                                        <svg className="w-5 h-5 mr-3 text-indigo-200 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                                        </svg>
+                                                                        <div>
+                                                                            <p className="text-indigo-100 text-sm font-semibold">Ingeniería en Desarrollo y Gestión de Software</p>
+                                                                            <p className="text-indigo-200 text-xs mt-1">Carrera: IDGS</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Competencias Técnicas con más espacio */}
+                                                            <div>
+                                                                <h4 className="text-base font-semibold text-white mb-3 flex items-center">
+                                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                                    </svg>
+                                                                    Competencias Técnicas
+                                                                </h4>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {miembro.habilidades.map((habilidad, idx) => (
+                                                                        <span
+                                                                            key={idx}
+                                                                            className="inline-block bg-white/20 text-white text-sm px-3 py-2 rounded-full backdrop-blur-sm border border-white/10"
+                                                                        >
+                                                                            {habilidad}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex space-x-3 ml-4">
-                                                            <a
-                                                                href={miembro.github}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-full hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
-                                                                title="GitHub"
-                                                            >
-                                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                                                                </svg>
-                                                            </a>
-                                                            <a
-                                                                href={miembro.linkedin}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-full hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
-                                                                title="LinkedIn"
-                                                            >
-                                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                                                                </svg>
-                                                            </a>
+                                                    </div>
+
+                                                    {/* Contacto fijo en la parte inferior */}
+                                                    <div className="border-t border-white/20 pt-4 mt-4 flex-shrink-0">
+                                                        <h4 className="text-base font-semibold text-white mb-3 flex items-center">
+                                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                            Contacto
+                                                        </h4>
+                                                        <div className="flex justify-between items-center">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-indigo-100 text-sm truncate" title={miembro.email}>
+                                                                    {miembro.email}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex space-x-3 ml-4">
+                                                                {/* Botón GitHub - CONDICIONAL */}
+                                                                {tieneGitHub ? (
+                                                                    <a
+                                                                        href={miembro.github}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-full hover:bg-white/30 transition-all duration-200 backdrop-blur-sm group relative"
+                                                                        title="GitHub"
+                                                                    >
+                                                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => notificationService.showInfoNotification('Este integrante del equipo no cuenta con una cuenta de GitHub por el momento')}
+                                                                        className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-all duration-200 backdrop-blur-sm cursor-pointer group relative"
+                                                                        title="Cuenta de GitHub no disponible"
+                                                                    >
+                                                                        <svg className="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                                                        </svg>
+                                                                        <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                                            Sin cuenta
+                                                                        </span>
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Botón LinkedIn - CONDICIONAL */}
+                                                                {tieneLinkedIn ? (
+                                                                    <a
+                                                                        href={miembro.linkedin}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-full hover:bg-white/30 transition-all duration-200 backdrop-blur-sm group relative"
+                                                                        title="LinkedIn"
+                                                                    >
+                                                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => notificationService.showInfoNotification('Este integrante del equipo no cuenta con una cuenta de LinkedIn por el momento')}
+                                                                        className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-all duration-200 backdrop-blur-sm cursor-pointer group relative"
+                                                                        title="Cuenta de LinkedIn no disponible"
+                                                                    >
+                                                                        <svg className="w-5 h-5 text-white/70" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                                                                        </svg>
+                                                                        <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                                            Sin cuenta
+                                                                        </span>
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             {/* Información de la universidad */}

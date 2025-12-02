@@ -80,9 +80,9 @@ export default function HistorialPage() {
                   Código: <span className="font-mono">{data.batch_info.unique_code}</span>
                 </p>
                 <p className="text-xs text-green-600 mt-1">
-                  Consulta: {new Date(data.summary.qr_scanned_at).toLocaleDateString('es-MX', { 
-                    year: 'numeric', 
-                    month: 'short', 
+                  Consulta: {new Date(data.summary.qr_scanned_at).toLocaleDateString('es-MX', {
+                    year: 'numeric',
+                    month: 'short',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
@@ -95,11 +95,10 @@ export default function HistorialPage() {
       </header>
 
       {/* Status Banner */}
-      <div className={`border-b ${
-        data.summary.has_activities 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-amber-50 border-amber-200'
-      }`}>
+      <div className={`border-b ${data.summary.has_activities
+        ? 'bg-green-50 border-green-200'
+        : 'bg-amber-50 border-amber-200'
+        }`}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2">
             <div className="flex items-center">
@@ -109,23 +108,20 @@ export default function HistorialPage() {
                 <WarningIcon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 mr-2 sm:mr-3" />
               )}
               <div>
-                <h3 className={`text-sm sm:text-base font-semibold ${
-                  data.summary.has_activities ? 'text-green-800' : 'text-amber-800'
-                }`}>
+                <h3 className={`text-sm sm:text-base font-semibold ${data.summary.has_activities ? 'text-green-800' : 'text-amber-800'
+                  }`}>
                   {data.summary.has_activities ? 'Historial Completo' : 'Historial Básico'}
                 </h3>
-                <p className={`text-xs sm:text-sm ${
-                  data.summary.has_activities ? 'text-green-600' : 'text-amber-600'
-                }`}>
+                <p className={`text-xs sm:text-sm ${data.summary.has_activities ? 'text-green-600' : 'text-amber-600'
+                  }`}>
                   {data.message}
                 </p>
               </div>
             </div>
             <div className="text-left xs:text-right">
               <p className="text-xs sm:text-sm text-gray-500">Estado del lote</p>
-              <p className={`text-xs sm:text-sm font-medium ${
-                data.summary.has_activities ? 'text-green-700' : 'text-amber-700'
-              }`}>
+              <p className={`text-xs sm:text-sm font-medium ${data.summary.has_activities ? 'text-green-700' : 'text-amber-700'
+                }`}>
                 {data.summary.has_activities ? 'Activo' : 'Pendiente'}
               </p>
             </div>
@@ -146,11 +142,10 @@ export default function HistorialPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-green-500 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${activeTab === tab.id
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
               >
                 <tab.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                 {tab.name}
@@ -162,7 +157,7 @@ export default function HistorialPage() {
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Tab Content */}
-        {activeTab === 'resumen' && <SummaryTab data={data} />}
+        {activeTab === 'resumen' && <SummaryTab data={data} setActiveTab={setActiveTab} />}
         {activeTab === 'actividades' && <ActivitiesTab data={data} />}
         {activeTab === 'detalles' && <DetailsTab data={data} />}
         {activeTab === 'metricas' && <MetricsTab data={data} />}
@@ -181,7 +176,7 @@ export default function HistorialPage() {
 }
 
 // Componente de pestaña de Resumen
-function SummaryTab({ data }) {
+function SummaryTab({ data, setActiveTab }) {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Métricas rápidas */}
@@ -265,7 +260,10 @@ function SummaryTab({ data }) {
             </div>
             {data.activities.length > 3 && (
               <div className="mt-3 sm:mt-4 text-center">
-                <button className="text-green-600 hover:text-green-700 font-medium text-xs sm:text-sm">
+                <button
+                  onClick={() => setActiveTab('actividades')} // Aquí está el cambio
+                  className="text-green-600 hover:text-green-700 font-medium text-xs sm:text-sm"
+                >
                   Ver todas las actividades ({data.activities.length})
                 </button>
               </div>
@@ -345,8 +343,10 @@ function DetailsTab({ data }) {
             { label: 'Estado', value: data.summary.has_activities ? 'Completo' : 'Básico' },
             { label: 'Total de Actividades', value: data.summary.total_activities },
             { label: 'Inversión Total', value: `$${parseFloat(data.summary.total_batch_cost).toFixed(2)}` },
-            { label: 'Última Actualización', value: data.summary.last_activity_date ? 
-              new Date(data.summary.last_activity_date).toLocaleDateString('es-MX') : 'Sin actividades' }
+            {
+              label: 'Última Actualización', value: data.summary.last_activity_date ?
+                new Date(data.summary.last_activity_date).toLocaleDateString('es-MX') : 'Sin actividades'
+            }
           ]} />
         </SectionCard>
       </div>
@@ -365,18 +365,18 @@ function MetricsTab({ data }) {
         {/* Métricas financieras */}
         <SectionCard title="Métricas Financieras" icon={<CurrencyDollarIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
           <div className="space-y-3 sm:space-y-4">
-            <MetricItem 
-              label="Inversión Total" 
+            <MetricItem
+              label="Inversión Total"
               value={`$${totalCost.toFixed(2)}`}
               description="Costo total acumulado en actividades"
             />
-            <MetricItem 
-              label="Costo Promedio por Actividad" 
+            <MetricItem
+              label="Costo Promedio por Actividad"
               value={activityCount > 0 ? `$${(totalCost / activityCount).toFixed(2)}` : '$0.00'}
               description="Inversión promedio por actividad registrada"
             />
-            <MetricItem 
-              label="Actividades Registradas" 
+            <MetricItem
+              label="Actividades Registradas"
               value={activityCount}
               description="Total de actividades en el sistema"
             />
@@ -386,18 +386,18 @@ function MetricsTab({ data }) {
         {/* Métricas de tiempo */}
         <SectionCard title="Métricas de Tiempo" icon={<ClockIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
           <div className="space-y-3 sm:space-y-4">
-            <MetricItem 
-              label="Duración del Cultivo" 
+            <MetricItem
+              label="Duración del Cultivo"
               value={calculateCropDuration(data.crop_info.planting_date, data.crop_info.harvest_date)}
               description="Período total desde siembra hasta cosecha"
             />
-            <MetricItem 
-              label="Fecha de Inicio" 
+            <MetricItem
+              label="Fecha de Inicio"
               value={new Date(data.crop_info.planting_date).toLocaleDateString('es-MX')}
               description="Día de siembra del cultivo"
             />
-            <MetricItem 
-              label="Fecha de Término" 
+            <MetricItem
+              label="Fecha de Término"
               value={new Date(data.crop_info.harvest_date).toLocaleDateString('es-MX')}
               description="Día estimado de cosecha"
             />
@@ -408,9 +408,8 @@ function MetricsTab({ data }) {
       {/* Resumen de estado */}
       <SectionCard title="Estado del Sistema" icon={<ShieldCheckIcon className="h-4 w-4 sm:h-5 sm:w-5" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          <div className={`p-3 sm:p-4 rounded-lg ${
-            data.summary.has_activities ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
-          }`}>
+          <div className={`p-3 sm:p-4 rounded-lg ${data.summary.has_activities ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
+            }`}>
             <div className="flex items-center">
               {data.summary.has_activities ? (
                 <CheckCircleIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mr-2 sm:mr-3" />
@@ -419,15 +418,14 @@ function MetricsTab({ data }) {
               )}
               <div>
                 <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Nivel de Historial</h4>
-                <p className={`text-xs sm:text-sm ${
-                  data.summary.has_activities ? 'text-green-700' : 'text-amber-700'
-                }`}>
+                <p className={`text-xs sm:text-sm ${data.summary.has_activities ? 'text-green-700' : 'text-amber-700'
+                  }`}>
                   {data.summary.has_activities ? 'Completo' : 'Básico'}
                 </p>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-blue-50 border border-blue-200 p-3 sm:p-4 rounded-lg">
             <div className="flex items-center">
               <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mr-2 sm:mr-3" />
@@ -476,7 +474,7 @@ function ErrorState({ error, uniqueCode }) {
           <p className="text-xs sm:text-sm text-gray-500">Código consultado:</p>
           <p className="font-mono text-gray-800 font-semibold text-sm sm:text-base">{uniqueCode}</p>
         </div>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors duration-200 w-full text-sm sm:text-base"
         >
@@ -598,11 +596,11 @@ function ActivityCard({ activity }) {
           <div className="ml-2 sm:ml-4">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900">{activity.activity_type}</h3>
             <p className="text-gray-500 text-xs sm:text-sm">
-              {new Date(activity.date).toLocaleDateString('es-MX', { 
-                weekday: 'short', 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
+              {new Date(activity.date).toLocaleDateString('es-MX', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
               })}
             </p>
           </div>
@@ -697,93 +695,93 @@ function calculateCropDuration(plantingDate, harvestDate) {
 }
 
 // SVG Icons (sin cambios)
-function FarmIcon(props) { 
+function FarmIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
     </svg>
-  ) 
+  )
 }
 
-function ChartBarIcon(props) { 
+function ChartBarIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
     </svg>
-  ) 
+  )
 }
 
-function ClipboardListIcon(props) { 
+function ClipboardListIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
     </svg>
-  ) 
+  )
 }
 
-function DocumentTextIcon(props) { 
+function DocumentTextIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
-  ) 
+  )
 }
 
-function ChartPieIcon(props) { 
+function ChartPieIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
     </svg>
-  ) 
+  )
 }
 
-function CurrencyDollarIcon(props) { 
+function CurrencyDollarIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-  ) 
+  )
 }
 
-function CheckBadgeIcon(props) { 
+function CheckBadgeIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
     </svg>
-  ) 
+  )
 }
 
-function UserIcon(props) { 
+function UserIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </svg>
-  ) 
+  )
 }
 
-function ClockIcon(props) { 
+function ClockIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-  ) 
+  )
 }
 
-function ShieldCheckIcon(props) { 
+function ShieldCheckIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
-  ) 
+  )
 }
 
-function ExclamationTriangleIcon(props) { 
+function ExclamationTriangleIcon(props) {
   return (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
     </svg>
-  ) 
+  )
 }
 
 function CheckCircleIcon(props) {
